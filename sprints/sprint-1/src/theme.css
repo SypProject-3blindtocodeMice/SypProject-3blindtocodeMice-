@@ -1,0 +1,126 @@
+:root {
+  /* FurnaView System Specification: deep green, teal, ink and pale mint. */
+  --green: #0e6f57;
+  --teal: #117c62;
+  --ink: #18352c;
+  --mint: #eaf5ee;
+  --pale: #f3f8f5;
+  --white: #ffffff;
+}
+
+body { background: var(--white); }
+
+.reveal {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 32px;
+  color: var(--ink);
+}
+
+.reveal .slides section {
+  box-sizing: border-box;
+  padding: 40px 56px;
+  text-align: left;
+}
+
+.reveal h1, .reveal h2, .reveal h3, .reveal p, .reveal figure {
+  margin: 0;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  text-shadow: none;
+}
+
+.reveal h2 {
+  color: var(--green);
+  font-size: 1.82em;
+  line-height: 1.12;
+  margin-bottom: 12px;
+}
+
+.reveal h3 { font-size: 0.9em; line-height: 1.14; }
+.reveal p { font-size: 0.75em; line-height: 1.36; }
+.reveal .intro { max-width: 990px; color: #53625c; font-size: 0.88em; }
+
+/* Title: architectural lines are decorative, not a fake application screenshot. */
+.reveal .hero { color: var(--white); }
+.hero-copy { position: relative; z-index: 1; max-width: 750px; }
+.reveal .hero-kicker { font-size: 1.06em; font-weight: 800; letter-spacing: 0.01em; }
+.reveal .hero h1 { max-width: 730px; margin-top: 45px; font-size: 1.94em; line-height: 1.08; }
+.reveal .hero-description { max-width: 650px; margin-top: 30px; color: var(--mint); font-size: 0.86em; }
+.reveal .hero-sprint {
+  display: inline-block;
+  margin-top: 58px;
+  padding-top: 15px;
+  border-top: 3px solid #b7ddc4;
+  font-size: 0.68em;
+  font-weight: 700;
+}
+.hero-sprint span { padding: 0 10px; color: #b7ddc4; }
+.hero-art {
+  position: absolute;
+  right: -26px;
+  top: 90px;
+  width: 420px;
+  height: 410px;
+  stroke: #b7ddc4;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  opacity: 0.38;
+}
+
+/* Idea: a connected journey rather than three unrelated feature cards. */
+.journey {
+  display: grid;
+  grid-template-columns: 1fr 38px 1fr 38px 1fr;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 56px;
+}
+.journey-step {
+  min-width: 0;
+  padding: 22px 20px 23px;
+  border-top: 4px solid #b7ddc4;
+  background: var(--pale);
+}
+.journey-step.active { border-top-color: var(--teal); background: var(--mint); }
+.step-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.step-number { color: var(--green); font-size: 0.69em; font-weight: 800; }
+.stage { font-size: 0.44em; font-weight: 700; white-space: nowrap; }
+.stage.future { color: #53625c; }
+.stage.now { color: var(--green); }
+.journey-step svg { display: block; width: 76px; height: 76px; margin: 14px 0 10px; stroke: var(--teal); stroke-width: 2.5; stroke-linejoin: round; }
+.journey-step h3 { color: var(--green); font-size: 1.13em; margin-bottom: 8px; }
+.journey-step p { font-size: 0.64em; }
+.journey-arrow { align-self: center; color: var(--teal); font-size: 1.23em; text-align: center; }
+
+/* Results: actual screenshot carries the visual weight. */
+.showcase { display: grid; grid-template-columns: 55% 1fr; align-items: start; gap: 38px; margin-top: 28px; }
+.prototype-shot { overflow: hidden; border: 1px solid #d2e8db; border-radius: 7px; background: var(--ink); }
+.prototype-shot img { display: block; width: 100%; height: 283px; object-fit: cover; }
+.prototype-shot figcaption { padding: 9px 14px; background: var(--pale); color: #53625c; font-size: 0.48em; }
+.achievement-list { display: grid; gap: 16px; }
+.achievement { display: grid; grid-template-columns: 48px 1fr; gap: 14px; align-items: start; }
+.achievement > span { color: var(--teal); font-size: 0.72em; font-weight: 800; }
+.achievement h3 { color: var(--green); font-size: 0.77em; margin-bottom: 5px; }
+.achievement p { font-size: 0.63em; }
+.reveal .still-ahead { margin-top: 25px; padding: 11px 0 0; border-top: 2px solid #b7ddc4; font-size: 0.7em; }
+.still-ahead strong { margin-right: 12px; color: var(--green); }
+
+/* Roadmap: the graphic contrasts the current object with the planned structure. */
+.milestones { display: grid; grid-template-columns: 1fr 68px 1fr; align-items: center; gap: 18px; margin-top: 34px; }
+.milestone { padding: 16px 24px 20px; border-radius: 7px; background: var(--pale); }
+.next-milestone { background: var(--mint); }
+.milestone-label { color: var(--teal); font-size: 0.61em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+.milestone svg { display: block; width: 230px; height: 140px; margin: 4px auto 5px; stroke: var(--teal); stroke-width: 2.7; stroke-linejoin: round; }
+.milestone h3 { color: var(--green); font-size: 0.9em; margin-bottom: 5px; }
+.milestone p { font-size: 0.62em; }
+.milestone-arrow { color: var(--teal); font-size: 2em; text-align: center; }
+.reveal .later { margin-top: 24px; font-size: 0.69em; color: #53625c; }
+.later strong { color: var(--green); margin-right: 14px; }
+.later span { padding: 0 9px; color: var(--teal); }
+
+.reveal .controls, .reveal .progress { color: var(--teal); }
+
+@media print {
+  .reveal .slides section { print-color-adjust: exact; }
+}
