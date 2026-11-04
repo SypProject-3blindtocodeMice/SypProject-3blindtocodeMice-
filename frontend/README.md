@@ -11,15 +11,17 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Left-drag to orbit, right-drag to pan, and scroll to zoom. Run `npm run typecheck` for a TypeScript check and `npm run build` for a production build.
+Open the local URL printed by Vite. Left-drag to orbit, right-drag to pan, and scroll to zoom. Click the wall to select it (its color brightens); use the arrow keys to move it across the XZ ground plane in 0.25 m steps (left/right = X, up/down = Z). Hold Shift and press Left/Right to turn it around its vertical axis, or Shift+Up/Down to tip it around its base until it lies flat on either side (limited to ±90°). Each keydown turns or tips it 1°; holding a key repeats at your keyboard's normal repeat rate. Click empty space to deselect it. Run `npm run typecheck` for a TypeScript check and `npm run build` for a production build.
 
 ## Where things live
 
 - `index.html` and `src/main.tsx`: browser and React entry points.
-- `src/App.tsx` and `src/styles.css`: full-window canvas and responsive sizing.
-- `src/viewer3d/Scene.tsx`: assembles the background, lighting, grid and controls. Add a simple 3D object here, e.g. `<mesh position={[2, 0.5, 0]}><boxGeometry /><meshStandardMaterial color="orange" /></mesh>`.
+- `src/App.tsx` and `src/styles.css`: full-window canvas, temporary selection/movement state, keyboard controls and wall details overlay.
+- `src/model/wall.ts`: typed wall data, stable ID, dimensions and position in meters, plus turn and tilt angles in degrees.
+- `src/viewer3d/Scene.tsx`: assembles the background, lighting, grid, wall and controls.
+- `src/viewer3d/WallMesh.tsx`: derives selectable geometry from wall data; does not own the wall's position.
 - `src/viewer3d/GroundGrid.tsx`: XZ ground grid and origin markers.
 - `src/viewer3d/CameraControls.tsx`: orbit, pan and zoom interaction.
 - `src/viewer3d/sceneConfig.ts`: initial camera and grid settings.
 
-The grid is a visual reference, not an editable building model. Future building geometry can be added as its own component in `viewer3d` and composed in `Scene.tsx`.
+This is one movable prototype wall, not a validated building model or a complete room. Future building elements can be modeled separately from their rendering components and composed in `Scene.tsx`.

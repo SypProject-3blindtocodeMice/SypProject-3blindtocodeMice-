@@ -1,11 +1,16 @@
 import { Grid } from '@react-three/drei'
 import { grid } from './sceneConfig'
 
-export function GroundGrid() {
+type GroundGridProps = {
+  onDeselect: () => void
+}
+
+export function GroundGrid({ onDeselect }: GroundGridProps) {
   return (
     <>
       <Grid
         args={[grid.size, grid.size]}
+        onClick={onDeselect}
         cellSize={grid.cellSize}
         sectionSize={grid.sectionSize}
         cellColor={grid.cellColor}
