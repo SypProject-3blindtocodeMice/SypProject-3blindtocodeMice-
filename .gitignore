@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+dist/
+node_modules/
+coverage/
+
+# IDE and local tooling
+.idea/
+.vscode/
+*.user
+*.suo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local data and generated files
+*.db
+*.db-shm
+*.db-wal
+artifacts/
+uploads/
