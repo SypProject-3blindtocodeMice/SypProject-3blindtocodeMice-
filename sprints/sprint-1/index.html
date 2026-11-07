@@ -10,10 +10,9 @@
       <div class="slides">
         <section class="hero" data-background-color="#0E6F57">
           <div class="hero-copy">
-            <p class="hero-kicker">FurnaView</p>
-            <h1>From floor plans to spaces you can explore.</h1>
-            <p class="hero-description">Building the foundation for an accessible 3D planning and analysis platform.</p>
-            <p class="hero-sprint">Sprint 1 <span aria-hidden="true">·</span> Interactive 3D prototype</p>
+            <h1>FurnaView</h1>
+            <p class="hero-description">Our project focuses on converting floor plans into interactive 3D building models. In this sprint, we worked on the basic 3D environment and wall interaction.</p>
+            <p class="hero-sprint">Sprint 1 <span aria-hidden="true">·</span> 3D Visualization Prototype</p>
           </div>
           <svg class="hero-art" viewBox="0 0 480 470" fill="none" aria-hidden="true">
             <path d="M32 330 244 425 449 317 241 223 32 330Z" />
@@ -24,68 +23,67 @@
         </section>
 
         <section class="idea-slide">
-          <h2>A floor plan is only the beginning.</h2>
-          <p class="intro">It tells you where things are. But what does the space look like—and how might it behave?</p>
-          <div class="journey" aria-label="Plan, explore, understand">
+          <h2>What is FurnaView?</h2>
+          <p class="intro">We want to make it easier to visualize buildings from floor plans and eventually analyze indoor conditions.</p>
+          <div class="journey" aria-label="Create a model, view in 3D, analyze">
             <article class="journey-step">
-              <div class="step-top"><span class="step-number">01</span><span class="stage future">Future workflow</span></div>
+              <div class="step-top"><span class="step-number">01</span><span class="stage future">Planned</span></div>
               <svg viewBox="0 0 96 96" fill="none" aria-hidden="true"><path d="M14 16h68v64H14V16Zm34 0v35m0 13v16M14 51h34m16 0h18M30 16v16" /></svg>
-              <h3>Plan</h3>
-              <p>Start with a floor plan and meaningful building objects.</p>
+              <h3>Create a model</h3>
+              <p>Import a floor plan or define building elements manually.</p>
             </article>
             <span class="journey-arrow" aria-hidden="true">→</span>
             <article class="journey-step active">
               <div class="step-top"><span class="step-number">02</span><span class="stage now">Started in Sprint 1</span></div>
               <svg viewBox="0 0 96 96" fill="none" aria-hidden="true"><path d="m48 12 32 17v38L48 84 16 67V29l32-17Zm0 34 32-17M48 46 16 29m32 17v38" /></svg>
-              <h3>Explore</h3>
-              <p>Inspect 3D space. Today: one wall and orbit controls; a walkthrough comes later.</p>
+              <h3>View in 3D</h3>
+              <p>Explore the building and interact with walls, rooms, and other elements.</p>
             </article>
             <span class="journey-arrow" aria-hidden="true">→</span>
             <article class="journey-step">
-              <div class="step-top"><span class="step-number">03</span><span class="stage future">Future workflow</span></div>
+              <div class="step-top"><span class="step-number">03</span><span class="stage future">Later goal</span></div>
               <svg viewBox="0 0 96 96" fill="none" aria-hidden="true"><path d="M16 70V45m16 25V31m16 39V49m16 21V25m16 45V39M12 78h72" /></svg>
-              <h3>Understand</h3>
-              <p>Examine indoor temperature, ventilation and CO₂.</p>
+              <h3>Analyze</h3>
+              <p>Simulate conditions such as temperature, ventilation, and CO₂ levels.</p>
             </article>
           </div>
         </section>
 
         <section class="results-slide">
-          <h2>Our first step into 3D.</h2>
-          <p class="intro">A working foundation for exploring and interacting with building elements.</p>
+          <h2>What we implemented</h2>
+          <p class="intro">During Sprint 1, we focused on getting a basic 3D scene running and making our first wall interactive.</p>
           <div class="showcase">
             <figure class="prototype-shot">
               <img src="./assets/prototype-viewport.png" alt="Actual Sprint 1 viewport showing one wall on a 3D ground grid" />
               <figcaption>Actual prototype · one wall in the 3D viewport</figcaption>
             </figure>
             <div class="achievement-list">
-              <div class="achievement"><span>01</span><div><h3>Interactive viewport</h3><p>Responsive grid, orbit, pan and zoom.</p></div></div>
-              <div class="achievement"><span>02</span><div><h3>A wall with identity</h3><p>Typed object; select, highlight and inspect its dimensions.</p></div></div>
-              <div class="achievement"><span>03</span><div><h3>Direct interaction</h3><p>Move with arrow keys; turn or tip in 1° steps.</p></div></div>
+              <div class="achievement"><span>01</span><div><h3>3D environment</h3><p>Set up the viewport, ground grid, lighting, and camera controls for rotating, panning, and zooming.</p></div></div>
+              <div class="achievement"><span>02</span><div><h3>Wall rendering and selection</h3><p>Created a wall using typed data, with selection highlighting and dimension display.</p></div></div>
+              <div class="achievement"><span>03</span><div><h3>Wall controls</h3><p>Added keyboard movement and controls to rotate or tilt the wall in 1° increments.</p></div></div>
             </div>
           </div>
-          <p class="still-ahead"><strong>Still ahead</strong> A complete room with a floor and four connected walls.</p>
         </section>
 
         <section class="roadmap-slide">
-          <h2>From one wall to a complete room.</h2>
-          <p class="intro">The interaction works. Next, the elements need to become a connected space.</p>
+          <h2>Plans for Sprint 2</h2>
+          <p class="intro">Now that the basic 3D environment works, we can start building more complex structures.</p>
           <div class="milestones">
             <div class="milestone">
-              <span class="milestone-label">Today</span>
+               <span class="milestone-label">Current prototype</span>
               <svg viewBox="0 0 260 170" fill="none" aria-hidden="true"><path d="m63 53 126-19 21 12-125 19-22-12Zm0 0v84l22 11V65m0 83 125-19V46" /></svg>
-              <h3>One wall</h3>
-              <p>Select, move and rotate.</p>
+               <h3>One interactive wall</h3>
+               <p>Select and move the wall using basic 3D navigation and interaction.</p>
             </div>
             <span class="milestone-arrow" aria-hidden="true">→</span>
             <div class="milestone next-milestone">
-              <span class="milestone-label">Next</span>
+               <span class="milestone-label">Next sprint</span>
               <svg viewBox="0 0 260 170" fill="none" aria-hidden="true"><path d="m25 110 115 50 97-51-113-47-99 48Zm0 0V42l99-34 113 46v55M25 42l115 47 97-35M140 89v71m-78-34V59m119 82V71" /></svg>
-              <h3>A complete room</h3>
-              <p>One floor, four connected walls, consistent dimensions.</p>
+               <h3>Build a room</h3>
+               <p>Generate a floor and four connected walls, with consistent room dimensions and wall positions. Extend interaction to multiple elements.</p>
             </div>
           </div>
-          <p class="later"><strong>Later</strong> Plan recognition <span>·</span> Model validation <span>·</span> Environmental analysis</p>
+          <p class="later"><strong>Later project goals</strong> Floor-plan recognition and environmental simulation.</p>
         </section>
       </div>
     </div>
