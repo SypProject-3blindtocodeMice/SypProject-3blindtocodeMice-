@@ -9,11 +9,15 @@
 
 ## Sprint Backlog
 
-| ID | Task | Assignee | Priority | Estimate | Status |
-|----|------|----------|----------|----------|--------|
-| FV-012 | Integrate manual model through analysis and results | David Zwettler (primary) | Must Have | 14 h | Planned |
-| FV-013 | Verify controlled import path and fix critical defects | David Zwettler (primary) | Must Have | 10 h | Planned |
-| FV-014 | Document, package and roll out the January MVP | David Zwettler (primary) | Must Have | 8 h | Planned |
+> Tracker sub-issue progress: not reported for the planned feature issues in the Downloads TSV. The task-detail bullets/acceptance criteria below are planning descriptions, not evidence that tracker sub-issues exist or are complete.
+
+| ID | Task | Assignee | Priority | Estimate | Depends On | Status |
+|----|------|----------|----------|----------|------------|--------|
+| FV-012 (issue #33) | Integrate manual model through analysis and results | David Zwettler (primary) | Must Have | 14 h* | FV-003, FV-004, FV-005, FV-006, FV-009, FV-010, FV-011 | Planned |
+| FV-013 (issue #34) | Verify controlled import path and fix critical defects | David Zwettler (primary) | Must Have | 10 h* | FV-007, FV-008, FV-012 | Planned |
+| FV-014 (issue #35) | Document, package and roll out the January MVP | David Zwettler (primary) | Must Have | 8 h* | FV-012, FV-013 | Planned |
+
+* Estimates are provisional planning estimates; issue tracker estimates/progress are not reported for these planned feature issues. Confirm before commitment.
 
 ## Task Details
 ### FV-012 - Integrate manual model through analysis and results

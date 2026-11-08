@@ -9,10 +9,14 @@
 
 ## Sprint Backlog
 
-| ID | Task | Assignee | Priority | Estimate | Status |
-|----|------|----------|----------|----------|--------|
-| FV-003 | Render multiple connected walls and room surfaces | Audrey Wimmer (primary) | Must Have | 16 h | Planned |
-| FV-004 | Calculate room boundaries and basic model validity | David Zwettler (primary) | Must Have | 12 h | Planned |
+> Tracker sub-issue progress: not reported for the planned feature issues in the Downloads TSV. The task-detail bullets/acceptance criteria below are planning descriptions, not evidence that tracker sub-issues exist or are complete.
+
+| ID | Task | Assignee | Priority | Estimate | Depends On | Status |
+|----|------|----------|----------|----------|------------|--------|
+| FV-003 (issue #22) | Render multiple connected walls and room surfaces | Audrey Wimmer (primary) | Must Have | 16 h* | FV-002 | Planned |
+| FV-004 (issue #23) | Calculate room boundaries and basic model validity | David Zwettler (primary) | Must Have | 12 h* | FV-002 | Planned |
+
+* Estimates are provisional planning estimates; issue tracker estimates/progress are not reported for these planned feature issues. Confirm before commitment.
 
 ## Task Details
 ### FV-003 - Render multiple connected walls and room surfaces

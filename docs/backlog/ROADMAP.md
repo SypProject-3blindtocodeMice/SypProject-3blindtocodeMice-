@@ -6,7 +6,7 @@
 
 | Sprint | Dates | Milestone |
 |---|---|---|
-| 02 | 09 Nov 2026 to 22 Nov 2026 | Agree on a small semantic model and lock the January MVP boundary |
+| 02 | 09 Nov 2026 to 22 Nov 2026 | Agree on a small semantic model, lock the January MVP boundary, and establish website layout/visual design (30 h estimated; 24 h baseline capacity, so resolve +6 h overage) |
 | 03 | 23 Nov 2026 to 06 Dec 2026 | Render and validate a connected two-room semantic model |
 | 04 | 07 Dec 2026 to 20 Dec 2026 | Create and edit a small plan with semantic openings in 3D |
 | 05 | 21 Dec 2026 to 03 Jan 2027 | Import one controlled plan, review candidate geometry, and retain manual fallback |
@@ -26,3 +26,4 @@
 - Establish shared model units/IDs early: renderer, editor, import and simulation depend on the same semantic data.
 - CO2 results depend on explicit flow assumptions; opening state/area alone does not determine ventilation flow. Results must be labeled planning estimates, not engineering-grade CFD.
 - If behind schedule, simplify detection and UI presentation before cutting validation, result transparency or the core manual end-to-end flow.
+- Styling issues #21, #26, #29, and #36 are present in the issue tracker but unestimated; they are not committed by this roadmap until sized and scheduled.

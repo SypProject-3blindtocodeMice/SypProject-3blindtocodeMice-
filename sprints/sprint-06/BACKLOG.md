@@ -9,11 +9,15 @@
 
 ## Sprint Backlog
 
-| ID | Task | Assignee | Priority | Estimate | Status |
-|----|------|----------|----------|----------|--------|
-| FV-009 | Configure one CO2 analysis scenario | Aniket Tripathi (primary) | Must Have | 8 h | Planned |
-| FV-010 | Implement a deterministic room-level CO2 estimate | Aniket Tripathi (primary) | Must Have | 17 h | Planned |
-| FV-011 | Display results and compare one changed scenario | Audrey Wimmer (primary) | Must Have | 10 h | Planned |
+> Tracker sub-issue progress: not reported for the planned feature issues in the Downloads TSV. The task-detail bullets/acceptance criteria below are planning descriptions, not evidence that tracker sub-issues exist or are complete.
+
+| ID | Task | Assignee | Priority | Estimate | Depends On | Status |
+|----|------|----------|----------|----------|------------|--------|
+| FV-009 (issue #30) | Configure one CO2 analysis scenario | Aniket Tripathi (primary) | Must Have | 8 h* | FV-002, FV-006 | Planned |
+| FV-010 (issue #31) | Implement a deterministic room-level CO2 estimate | Aniket Tripathi (primary) | Must Have | 17 h* | FV-009 | Planned |
+| FV-011 (issue #32) | Display results and compare one changed scenario | Audrey Wimmer (primary) | Must Have | 10 h* | FV-009, FV-010 | Planned |
+
+* Estimates are provisional planning estimates; issue tracker estimates/progress are not reported for these planned feature issues. Confirm before commitment.
 
 ## Task Details
 ### FV-009 - Configure one CO2 analysis scenario

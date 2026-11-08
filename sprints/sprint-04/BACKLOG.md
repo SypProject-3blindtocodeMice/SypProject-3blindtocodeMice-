@@ -9,10 +9,14 @@
 
 ## Sprint Backlog
 
-| ID | Task | Assignee | Priority | Estimate | Status |
-|----|------|----------|----------|----------|--------|
-| FV-005 | Add basic manual plan creation and correction controls | Audrey Wimmer (primary) | Must Have | 18 h | Planned |
-| FV-006 | Represent basic doors/windows and room occupancy | David Zwettler (primary) | Must Have | 12 h | Planned |
+> Tracker sub-issue progress: not reported for the planned feature issues in the Downloads TSV. The task-detail bullets/acceptance criteria below are planning descriptions, not evidence that tracker sub-issues exist or are complete.
+
+| ID | Task | Assignee | Priority | Estimate | Depends On | Status |
+|----|------|----------|----------|----------|------------|--------|
+| FV-005 (issue #24) | Add basic manual plan creation and correction controls | Audrey Wimmer (primary) | Must Have | 18 h* | FV-002, FV-003, FV-004 | Planned |
+| FV-006 (issue #25) | Represent basic doors/windows and room occupancy | David Zwettler (primary) | Must Have | 12 h* | FV-002, FV-005 | Planned |
+
+* Estimates are provisional planning estimates; issue tracker estimates/progress are not reported for these planned feature issues. Confirm before commitment.
 
 ## Task Details
 ### FV-005 - Add basic manual plan creation and correction controls

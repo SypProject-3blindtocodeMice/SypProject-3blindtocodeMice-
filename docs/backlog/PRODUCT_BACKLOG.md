@@ -1,64 +1,70 @@
 # FurnaView Product Backlog
 
-**Effort:** estimates are person-hours (elapsed sprint time remains two calendar weeks). Estimates are provisional and include focused test/debug/integration work.
-**Planning window:** 9 November 2026 - 31 January 2027; six upcoming sprints. Normal team capacity is approximately 24-36 hours per two-week sprint; Sprint 5 is deliberately lighter for the Christmas period.
+**Effort and progress:** Estimates and recorded effort are person-hours. Estimates are not actuals; the Downloads TSV is the source for recorded actual effort and reported sub-issue progress. Where the TSV has no estimate or progress (most planned feature issues), the hours below are provisional planning estimates and sub-issue progress is unreported—not assumed to be zero or complete. Confirm estimates and task breakdowns in the issue tracker before commitment. Estimates include focused test/debug/integration work unless noted.
+**Planning window:** 9 November 2026 - 31 January 2027; six upcoming sprints. Capacity must be checked against the team’s actual school calendar and is not a substitute for the issue-level estimates.
 
 The backlog is task-based: each row is a bounded work item with a unique ID. Sprint plans select these same IDs; do not duplicate or count the same work twice. 
 
 ## Sprint 1 - Initial 3D viewport prototype (historical)
 
-| ID | Work Task | Estimate | Priority | Status |
+| ID | Work Task | Estimate | Priority | Status / sub-issue progress |
 |---|---|---:|---|---|
-| FV-H01 | Bootstrap the frontend and show an initial wall in a navigable 3D viewport | 18 h* | Must Have | Complete (initial-wall prototype evidenced) |
-| FV-H02 | Prepare the Sprint 1 review presentation and next room milestone | 6 h* | Should Have | Complete (presentation artifact evidenced) |
+| FV-H01 (issue #2) | Bootstrap the frontend and show an initial wall in a navigable 3D viewport | 16 h estimate; 17 h actual | Must Have | Complete; 5/5 sub-issues (100%) |
+| FV-H02 (issue #3) | Prepare the Sprint 1 review presentation and next room milestone | 6 h estimate; 5.5 h actual | Should Have | Complete; sub-issue progress not reported |
+| FV-H03 (issue #9) | Set up the server | 4 h estimate; 4 h actual | Must Have | Done; sub-issue progress not reported |
 
-*Sprint 1 dates 12 - 25 October 2026 and 24 hours total are retrospective planning assumptions; the initial-wall viewport and presentation are visible in the repository.
+*Sprint 1 dates 12 - 25 October 2026 are retrospective planning assumptions. TSV estimates total 26 h and recorded effort totals 26.5 h; the original 24 h sprint total was incorrect. The viewport and presentation are evidenced in the repository; server setup completion is recorded in the TSV.
 
 ## Sprint 2 - Agree on the narrow MVP scope and semantic building model
 
 | ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
 |---|---|---:|---|---|---|---|
-| FV-001 | Confirm the January MVP boundary, model units/IDs, and team integration contract | 8 h | Must Have | David Zwettler | Current viewport; team agreement | Planned |
-| FV-002 | Define a single-floor semantic building model and two-room fixture | 14 h | Must Have | David Zwettler | FV-001 | Planned |
+| FV-001 (issue #10) | Confirm the January MVP boundary, model units/IDs, and team integration contract | 8 h | Must Have | David Zwettler | Current viewport; team agreement | Planned; 0/4 sub-issues (0%) |
+| FV-002 (issue #11) | Define a single-floor semantic building model and two-room fixture | 14 h | Must Have | David Zwettler | FV-001 | Planned; 0/4 sub-issues (0%) |
+| FV-015 (issue #20) | Define website layout and visual design | 8 h | Should Have | Audrey Wimmer | Team agreement | Planned; sub-issue progress not reported |
 
 ## Sprint 3 - Render and validate a connected two-room model
 
 | ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
 |---|---|---:|---|---|---|---|
-| FV-003 | Render connected walls and room surfaces from the semantic fixture | 16 h | Must Have | Audrey Wimmer | FV-002 | Planned |
-| FV-004 | Validate closed rooms, shared boundaries, adjacency, area, and volume | 12 h | Must Have | David Zwettler | FV-002 | Planned |
+| FV-003 (issue #22) | Render connected walls and room surfaces from the semantic fixture | 16 h* | Must Have | Audrey Wimmer | FV-002 | Planned |
+| FV-004 (issue #23) | Validate closed rooms, shared boundaries, adjacency, area, and volume | 12 h* | Must Have | David Zwettler | FV-002 | Planned |
+
+The product backlog also includes styling work from issue #21 (3D viewport), issue #26 (editor page), issue #29 (upload page), and issue #36 (final website polish). The reference TSV does not estimate these items; they are **unestimated and unscheduled**, not zero-effort work. Size and schedule them with the team before commitment.
 
 ## Sprint 4 - Create/edit a small plan with semantic openings
 
 | ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
 |---|---|---:|---|---|---|---|
-| FV-005 | Create and correct a small floor plan with simple building-specific controls | 18 h | Must Have | Audrey Wimmer | FV-002, FV-003, FV-004 | Planned |
-| FV-006 | Add semantic doors/windows and basic room occupancy properties | 12 h | Must Have | David Zwettler | FV-002, FV-005 | Planned |
+| FV-005 (issue #24) | Create and correct a small floor plan with simple building-specific controls | 18 h* | Must Have | Audrey Wimmer | FV-002, FV-003, FV-004 | Planned |
+| FV-006 (issue #25) | Add semantic doors/windows and basic room occupancy properties | 12 h* | Must Have | David Zwettler | FV-002, FV-005 | Planned |
 
 ## Sprint 5 - Import one controlled floor plan and review candidates
 
 | ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
 |---|---|---:|---|---|---|---|
-| FV-007 | Import one controlled floor-plan image and produce candidate wall geometry | 12 h | Must Have | Aniket Tripathi | FV-002, FV-004 | Planned |
-| FV-008 | Review and correct imported candidate geometry before model confirmation | 6 h | Must Have | Audrey Wimmer | FV-005, FV-007 | Planned |
+| FV-007 (issue #27) | Import one controlled floor-plan image and produce candidate wall geometry | 12 h* | Must Have | Aniket Tripathi | FV-002, FV-004 | Planned |
+| FV-008 (issue #28) | Review and correct imported candidate geometry before model confirmation | 6 h* | Must Have | Audrey Wimmer | FV-005, FV-007 | Planned |
 
 ## Sprint 6 - Run a simplified CO2 scenario and compare results
 
 | ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
 |---|---|---:|---|---|---|---|
-| FV-009 | Configure a room-level CO2 scenario with explicit units and flow assumptions | 8 h | Must Have | Aniket Tripathi | FV-002, FV-006 | Planned |
-| FV-010 | Calculate a deterministic simplified room-average CO2 time series | 17 h | Must Have | Aniket Tripathi | FV-009 | Planned |
-| FV-011 | Visualize CO2 results and compare one changed scenario input | 10 h | Must Have | Audrey Wimmer | FV-009, FV-010 | Planned |
+| FV-009 (issue #30) | Configure a room-level CO2 scenario with explicit units and flow assumptions | 8 h* | Must Have | Aniket Tripathi | FV-002, FV-006 | Planned |
+| FV-010 (issue #31) | Calculate a deterministic simplified room-average CO2 time series | 17 h* | Must Have | Aniket Tripathi | FV-009 | Planned |
+| FV-011 (issue #32) | Visualize CO2 results and compare one changed scenario input | 10 h* | Must Have | Audrey Wimmer | FV-009, FV-010 | Planned |
 
 ## Sprint 7 - Integrate, verify, document, and roll out the MVP
 
 | ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
 |---|---|---:|---|---|---|---|
-| FV-012 | Integrate the manual-plan path through validation, 3D, analysis, and comparison | 14 h | Must Have | David Zwettler | FV-003, FV-004, FV-005, FV-006, FV-009, FV-010, FV-011 | Planned |
-| FV-013 | Verify controlled import and manual paths and fix MVP-blocking defects | 10 h | Must Have | David Zwettler | FV-007, FV-008, FV-012 | Planned |
-| FV-014 | Prepare instructions, package, smoke-test, and roll out the MVP | 8 h | Must Have | David Zwettler | FV-012, FV-013 | Planned |
+| FV-012 (issue #33) | Integrate the manual-plan path through validation, 3D, analysis, and comparison | 14 h* | Must Have | David Zwettler | FV-003, FV-004, FV-005, FV-006, FV-009, FV-010, FV-011 | Planned |
+| FV-013 (issue #34) | Verify controlled import and manual paths and fix MVP-blocking defects | 10 h* | Must Have | David Zwettler | FV-007, FV-008, FV-012 | Planned |
+| FV-014 (issue #35) | Prepare instructions, package, smoke-test, and roll out the MVP | 8 h* | Must Have | David Zwettler | FV-012, FV-013 | Planned |
 
 ## Work item acceptance criteria
+
+*The issue tracker currently has blank estimate/effort and sub-issue progress fields for these future feature issues. The starred figures are provisional estimates retained from the planning breakdown, not tracker-confirmed estimates or actual effort. Confirm estimates and add/track sub-issues in the tracker before sprint commitment.*
 
 ### FV-001 - Confirm the January MVP boundary, model units/IDs, and team integration contract
 - **Description:** Confirm the January MVP boundary, model units/IDs, and team integration contract.
@@ -158,9 +164,20 @@ The backlog is task-based: each row is a bounded work item with a unique ID. Spr
 | FV-F08 | Add an approved optional extension: VR walkthrough, collaboration, or room booking | 32 (provisional) | Won't Have for MVP | Audrey Wimmer | User validation and separate scope approval | Post-MVP | Deferred |
 | FV-F09 | Build professional CAD/BIM authoring or certified engineering calculations | Not estimated | Won't Have for MVP | Team | Separate product decision and specialist validation | Not planned | Out of scope |
 
+## Unestimated product backlog items from the issue tracker
+
+The following product work exists in the Downloads TSV but has no issue estimate and is not included in sprint totals. Groom and estimate before scheduling.
+
+| Issue | Work Task | Estimate | Status |
+|---|---|---:|---|
+| #21 | Style the 3D viewport on the website | Not estimated | Unscheduled |
+| #26 | Style editor page (toolbar, settings, and errors) | Not estimated | Unscheduled |
+| #29 | Style upload page (upload area, progress/errors, suggested-wall legend) | Not estimated | Unscheduled |
+| #36 | Final website polish (loading/empty states, smaller screens, demo readiness) | Not estimated | Unscheduled |
+
 ## Scope and schedule note
 
-This is a deliberate minimum integrated MVP for January 2027, not the full scope of every longer-term idea in the proposal. It includes a narrow supported recognition sample and a single room-average CO2 analysis. More robust recognition and broader environmental analysis remain visible in the post-MVP backlog rather than being implied complete. The team should confirm the narrowed acceptance scope with its supervisor.
+This is a deliberate minimum integrated MVP for January 2027, not the full scope of every longer-term idea in the proposal. It includes a narrow supported recognition sample and a single room-average CO2 analysis. More robust recognition and broader environmental analysis remain visible in the post-MVP backlog rather than being implied complete. Issue #20 adds 8 h of Sprint 2 website layout/design work; this takes Sprint 2 to 30 h, above the previously stated 24 h capacity, and requires explicit capacity approval or scope movement. Unestimated styling issues are excluded from the January commitment until estimated. Confirm scope and capacity with the supervisor.
 
 
 ## Post-MVP acceptance notes
