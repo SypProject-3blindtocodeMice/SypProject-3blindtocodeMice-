@@ -16,14 +16,15 @@ export function WallMesh({ wall, selected, onSelect }: WallMeshProps) {
     onSelect(wall.id)
   }
 
+  const centerX = (wall.start.x + wall.end.x) / 2
+  const centerZ = (wall.start.z + wall.end.z) / 2
+  // Three.js rotates local +X toward -Z for positive Y angles.
+  const angle = -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x)
   return (
-    <group
-      position={[wall.position.x, baseHeight, wall.position.z]}
-      rotation={[0, wall.rotationDegrees * Math.PI / 180, 0]}
-    >
+    <group position={[centerX, baseHeight, centerZ]} rotation={[0, angle, 0]}>
       <group rotation={[tiltRadians, 0, 0]}>
         <mesh position={[0, wall.height / 2, 0]} onClick={handleClick}>
-          <boxGeometry args={[wall.width, wall.height, wall.thickness]} />
+          <boxGeometry args={[wall.length, wall.height, wall.thickness]} />
           <meshStandardMaterial color={selected ? '#ffd180' : '#8296a9'} />
         </mesh>
       </group>
