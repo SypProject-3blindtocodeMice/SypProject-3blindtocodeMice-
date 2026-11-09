@@ -5,7 +5,18 @@
 
 The backlog is task-based: each row is a bounded work item with a unique ID. Sprint plans select these same IDs; do not duplicate or count the same work twice. 
 
-## Sprint 1 - Initial 3D viewport prototype (historical)
+## Sprint 1 - Initial 3D prototype and wall API extension
+
+| ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
+|---|---|---:|---|---|---|---|
+| FV-016 | Modular backend wall service/API: create, read, update (no delete) | 16 h* | Must Have | David Zwettler | Shared wall contract | Implemented in working tree; 10 backend tests passed locally |
+| FV-017 | Frontend API client, wall creation and multiwall display/edit | 14 h* | Must Have | Audrey Wimmer | FV-016 API contract | Implemented in working tree; typecheck reported passing |
+| FV-018 | Represent and validate wall-to-wall connections | 8 h* | Must Have | Aniket Tripathi | FV-016 wall model; FV-017 render integration | Implemented in working tree; limited topology |
+| FV-019 | Backend/frontend test coverage and CI for push + pull_request | 8 h* | Must Have | Aniket Tripathi (tests); David Zwettler (CI) | FV-016–018; stable commands | 10 backend, 3 frontend tests pass locally; CI configured, remote run unverified |
+
+*Reconstructed estimates, not measured effort or tracker-confirmed subtask estimates. Total 46 h: David 18 h, Audrey 14 h, Aniket 14 h, including tests, review and CI. Backend tests (10) and frontend tests (3), typecheck and build passed locally; remote CI remains unverified. See `sprints/sprint-1/BACKLOG.md` for subtasks and limitations.*
+
+## Historical Sprint 1 - Initial 3D viewport prototype
 
 | ID | Work Task | Estimate | Priority | Status / sub-issue progress |
 |---|---|---:|---|---|
@@ -13,7 +24,7 @@ The backlog is task-based: each row is a bounded work item with a unique ID. Spr
 | FV-H02 (issue #3) | Prepare the Sprint 1 review presentation and next room milestone | 6 h estimate; 5.5 h actual | Should Have | Complete; sub-issue progress not reported |
 | FV-H03 (issue #9) | Set up the server | 4 h estimate; 4 h actual | Must Have | Done; sub-issue progress not reported |
 
-*Sprint 1 dates 12 - 25 October 2026 are retrospective planning assumptions. TSV estimates total 26 h and recorded effort totals 26.5 h; the original 24 h sprint total was incorrect. The viewport and presentation are evidenced in the repository; server setup completion is recorded in the TSV.
+*Historical issue time and estimates here are tracker-recorded only (26 h estimated; 26.5 h actual across recorded work). No October sprint dates are inferred: commit history documents the initial repository on 17 September, frontend work on 4 November, and planning document changes on 5 and 9 November 2026. The viewport and presentation are evidenced in the repository; server setup completion is recorded in the tracker data.*
 
 ## Sprint 2 - Agree on the narrow MVP scope and semantic building model
 
@@ -65,6 +76,30 @@ The product backlog also includes styling work from issue #21 (3D viewport), iss
 ## Work item acceptance criteria
 
 *The issue tracker currently has blank estimate/effort and sub-issue progress fields for these future feature issues. The starred figures are provisional estimates retained from the planning breakdown, not tracker-confirmed estimates or actual effort. Confirm estimates and add/track sub-issues in the tracker before sprint commitment.*
+
+### FV-016 - Establish modular backend solution and wall API
+- **Description:** Implement a modular backend wall service/API for create, read and update using a shared request/response contract; delete is out of scope.
+- **Acceptance criteria:** Wall operations validate input, return consistent errors, and leave valid data unchanged on rejected updates; API contract is used by frontend. Backend suite passes.
+- **Estimate / priority:** 16 person-hours, reconstructed / Must Have.
+- **Primary owner:** David Zwettler. **Dependencies:** Shared wall contract. **Target:** Sprint 1 extension. **Status:** Implemented in working tree; tests reported passing.
+
+### FV-017 - Connect frontend to wall API and support create/multiwall editing
+- **Description:** Replace isolated wall-only interaction with API-backed wall creation and display/edit of multiple walls.
+- **Acceptance criteria:** User can create multiple walls through the interface, see server validation feedback, and render returned walls with stable IDs.
+- **Estimate / priority:** 14 person-hours, reconstructed / Must Have.
+- **Primary owner:** Audrey Wimmer. **Dependencies:** FV-016 contract. **Target:** Sprint 1 extension. **Status:** Implemented in working tree; frontend typecheck reported passing.
+
+### FV-018 - Represent wall connections and validate connected multiwall input
+- **Description:** Define and validate explicit connections between walls without claiming room/topology support beyond the bounded wall case.
+- **Acceptance criteria:** Connected walls retain stable identities and connections; malformed or dangling references are rejected with actionable feedback; tests cover connected and disconnected cases.
+- **Estimate / priority:** 8 person-hours, reconstructed / Must Have.
+- **Primary owner:** Aniket Tripathi. **Dependencies:** FV-016 wall model; FV-017 render integration. **Target:** Sprint 1 extension. **Status:** Implemented in working tree; limited topology, no room validation claim.
+
+### FV-019 - Tests and integration checks
+- **Description:** Add focused backend/frontend tests and CI checks triggered by both pushes and pull requests. Add CI last after commands stabilize.
+- **Acceptance criteria:** Backend tests (10 passing), frontend tests (3 passing), typecheck and build pass locally; CI runs equivalent checks on push and pull_request without deployment.
+- **Estimate / priority:** 8 person-hours, reconstructed / Must Have.
+- **Primary owner:** Aniket Tripathi (tests); David Zwettler (CI integration). **Dependencies:** FV-016–018 and stable commands. **Target:** Sprint 1 extension. **Status:** Tests pass locally; CI configured, remote run unverified.
 
 ### FV-001 - Confirm the January MVP boundary, model units/IDs, and team integration contract
 - **Description:** Confirm the January MVP boundary, model units/IDs, and team integration contract.
