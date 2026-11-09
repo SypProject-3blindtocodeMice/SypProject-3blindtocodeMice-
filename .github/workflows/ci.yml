@@ -47,7 +47,7 @@ jobs:
           done
 
       - name: Validate OpenCode configuration
-        run: python -m json.tool opencode.json > /dev/null
+        run: python -c "import json; from pathlib import Path; json.loads(Path('opencode.json').read_text(encoding='utf-8-sig'))"
 
       - name: Check whitespace errors
         run: git diff --check
