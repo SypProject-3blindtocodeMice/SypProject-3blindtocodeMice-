@@ -6,17 +6,17 @@
 - Goal: Extend the initial one-wall viewport into a modular backend-backed multiwall workflow, with wall connections, automated checks and CI.
 - Planning window: **2–22 November 2026 (provisional three-week Sprint 1 target)**. This is an illustrative schedule, not a claim that all historical development occurred on these dates; the existing Sprint 2 plan overlaps and needs team scheduling reconciliation.
 - Estimate: 46 person-hours reconstructed for the extension, not measured actual effort. See the owner/subtask roll-up below.
-- Status: Backend/API and tests are present; 10 backend tests, 3 frontend tests, frontend typecheck and build passed locally. CI workflow includes the same checks; no remote GitHub Actions execution evidence yet.
-- Tracker: Historical issue estimates/actuals below are tracker-recorded only. New parent issues [#37](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/37), [#38](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/38), [#40](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/40), and [#39](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/39) each have three native sub-issues, all assigned to [Sprint 1 milestone #1](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/milestone/1). Newly created issues remain open pending independent review and remote CI/browser verification.
+- Status: Implementation complete. 10 backend tests, 3 frontend tests, frontend typecheck and build passed locally; GitHub Actions run 43094574607 passed. Browser interaction has not been independently automated, so perform a manual UI acceptance walkthrough before demo.
+- Tracker: Historical issue estimates/actuals below are tracker-recorded only. New parent issues [#37](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/37), [#38](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/38), [#40](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/40), and [#39](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/39) and their 12 native sub-issues are closed as completed in [Sprint 1 milestone #1](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/milestone/1). Estimates remain reconstructed, not measured.
 
 ## Sprint Backlog — extension work
 
 | ID | Task | Assignee | Priority | Estimate | Dependencies | Status / evidence |
 |---|---|---|---|---:|---|---|
-| [FV-016 (#37)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/37) | Modular backend wall service/API: create, read, update; no delete | David Zwettler | Must Have | 16 h | Shared wall request/response shape | Implemented on `sprint-1`; backend tests passed locally |
-| [FV-017 (#38)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/38) | Frontend API client, wall creation and multiwall display/edit | Audrey Wimmer | Must Have | 14 h | FV-016 endpoint contract | Implemented on `sprint-1`; typecheck/build passed locally; browser check pending |
-| [FV-018 (#40)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/40) | Model and validate wall-to-wall connections | Aniket Tripathi | Must Have | 8 h | FV-016 wall representation; FV-017 render integration | Implemented on `sprint-1`; connection scope limited (below) |
-| [FV-019 (#39)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/39) | Backend/frontend test coverage and CI workflow | Aniket Tripathi (6 h tests); David Zwettler (2 h CI) | Must Have | 8 h | FV-016–018; stable commands | 10 backend and 3 frontend tests plus typecheck/build passed locally; remote workflow run pending |
+| [FV-016 (#37)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/37) | Modular backend wall service/API: create, read, update; no delete | David Zwettler | Must Have | 16 h | Shared wall request/response shape | Complete; closed after implementation and local backend tests |
+| [FV-017 (#38)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/38) | Frontend API client, wall creation and multiwall display/edit | Audrey Wimmer | Must Have | 14 h | FV-016 endpoint contract | Complete; closed; browser interaction still merits manual acceptance walkthrough |
+| [FV-018 (#40)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/40) | Model and validate wall-to-wall connections | Aniket Tripathi | Must Have | 8 h | FV-016 wall representation; FV-017 render integration | Complete; closed; connection scope limited (below) |
+| [FV-019 (#39)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/39) | Backend/frontend test coverage and CI workflow | Aniket Tripathi (6 h tests); David Zwettler (2 h CI) | Must Have | 8 h | FV-016–018; stable commands | Complete; closed; local tests and remote workflow passed |
 |  | **Total** | **David 18 h; Audrey 14 h; Aniket 14 h** |  | **46 h** |  | Reconstructed planning allocation; not actual effort |
 
 ### Reconstructed subtask allocation (person-hours)
@@ -34,7 +34,7 @@
 | FV-018c [#50](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/50) | Add connection-focused tests/review | Aniket | 2 h | Included in backend suite |
 | FV-019a [#52](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/52) | Add service and API tests | Aniket | 4 h | 10 backend tests passed locally |
 | FV-019b [#49](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/49) | Add/verify frontend checks and test coverage | Aniket | 2 h | 3 frontend model/API tests plus typecheck/build passed locally; no browser automation |
-| FV-019c [#51](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/51) | Extend existing CI last for push and pull_request | David | 2 h | Workflow committed; GitHub run not verified |
+| FV-019c [#51](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/51) | Extend existing CI last for push and pull_request | David | 2 h | Workflow committed; GitHub Actions run 43094574607 passed |
 
 Estimates are reconstructed from this task decomposition to total 46 h (David 18, Audrey 14, Aniket 14). They are neither measured actuals nor tracker-confirmed subtask estimates. Do not derive historical issue actuals from them.
 
@@ -49,7 +49,7 @@ Estimates are reconstructed from this task decomposition to total 46 h (David 18
 - FV-016–019 are Must Have for this Sprint 1 extension. FV-016 is the contract dependency for frontend and connection integration; FV-019 CI setup follows stable test commands and is intentionally last.
 - Current backend uses an in-memory repository: data does not persist across process restarts. This is a prototype boundary, not durable project storage.
 - Wall connections are not equivalent to validated room topology; #22–23 still cover rendering/validation of connected rooms. Reconcile overlap and acceptance boundaries with those existing issues in later planning; do not automatically reassign or close them.
-- GitHub issues #37–52 now track the extension; all are open until a team review confirms acceptance. Their milestone is Sprint 1; the pre-existing milestone due date (5 November) predates this provisional extension window and requires team reconciliation rather than invented historical dates.
+- GitHub issues #37–52 track the extension and are closed as completed. Closing records implementation completion, not measured effort or independently automated browser acceptance. Their milestone is Sprint 1; the pre-existing milestone due date (5 November) predates this provisional extension window and requires team reconciliation rather than invented historical dates.
 
 ## Historical prototype and tracker evidence
 
