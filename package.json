@@ -1,0 +1,7 @@
+{
+  "name": "furnaview",
+  "private": true,
+  "scripts": {
+    "build": "dotnet test backend/FurnaView.Api.Tests/FurnaView.Api.Tests.csproj && npm ci --prefix frontend && npm test --prefix frontend && npm run build --prefix frontend"
+  }
+}
