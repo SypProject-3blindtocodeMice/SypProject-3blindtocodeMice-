@@ -4,7 +4,7 @@
 
 | Sprint | Dates | Main Goal | Estimated Hours | Main Deliverable |
 |---|---|---|---:|---|
-| 01 | 02–22 Nov 2026 (provisional three-week target) | Initial 3D prototype extended with modular wall API, multiwall frontend, connections, tests and CI | 46 h* extension estimate | Backend/API and frontend changes present; 10 backend and 3 frontend tests, typecheck and build passed locally; CI configured, remote run unverified |
+| 01 | 02–22 Nov 2026 (provisional three-week target) | Initial 3D prototype extended with modular wall API, multiwall frontend, connections, tests and CI | 13.5 h* extension estimate; 9 h 30 worked | Backend/API and frontend changes present; 10 backend and 3 frontend tests, typecheck and build passed locally; CI configured, remote run passed |
 | 02 | 09 Nov to 22 Nov 2026 | Agree on a small semantic model, lock MVP boundary, and establish website visual design | 30 (baseline capacity 24; +6) | Shared model/scope agreement, two-room fixture, and website layout/design |
 | 03 | 23 Nov to 06 Dec 2026 | Render and validate a connected two-room semantic model | 28 (capacity 32) | Render and validate a connected two-room semantic model |
 | 04 | 07 Dec to 20 Dec 2026 | Create and edit a small plan with semantic openings in 3D | 30 (capacity 32) | Create and edit a small plan with semantic openings in 3D |
@@ -23,8 +23,9 @@
 - All documented MVP use cases have a minimal path, but image recognition scope is constrained and should be confirmed with the supervisor. If recognition fails, deliver manual fallback and explicitly report the target-MVP deviation.
 - Rollout is included in Sprint 7 and must be completed by 31 January 2027. No planned February development sprint.
 - Sprint 2 is 6 h over its 24 h baseline. The tracker provides no estimate for styling issues #21, #26, #29, or #36; those remain unscheduled and are not included in the 173 h total.
-- Historical issue effort values (26 h estimated / 26.5 h actual, including 4 h server setup) are tracker-recorded only. Repository history shows commits on 17 September, 4 November, 5 November and 9 November 2026; it does not establish October sprint dates.
-- Sprint 1 extension estimate is reconstructed, not measured: 46 h (David 18 h, Audrey 14 h, Aniket 14 h). It is the continuation of Sprint 1, not added as a new sprint to the existing Sprint 2–7 cadence or 173 h future total.
+- Historical issue effort values (14 h estimated / 9 h 46 worked, including 1 h server setup) are rescaled to the work blocks in the commit history, not independently measured. Repository history shows commits on 17 September, 4 November and 7–10 November 2026; it does not establish October sprint dates.
+- Sprint 1 extension estimate is rescaled to the recorded work blocks, not tracker-confirmed: 13.5 h (David 8.5 h, Audrey 2 h, Aniket 3 h); recorded extension work is 9 h 30. It is the continuation of Sprint 1, not added as a new sprint to the existing Sprint 2–7 cadence or 173 h future total.
+- Sprint 1 recorded effort across 4–10 November 2026 totals 31 h 16 (1,876 minutes): 19 h 16 on tracked issues (#2–#3, #9, #37–#40), 6 h on backlog documentation, and 6 h on unassigned planning/tooling. Shared issues #2 and #3 are split evenly across their three assignees; per-person totals are David 22 h 55, Audrey 4 h 10, Aniket 4 h 10.
 - Sprint 1 has a modular wall API with create/read/update (no delete), API-backed multiwall frontend, and wall connection work. CI is configured for `push` and `pull_request`; a remote run has not been verified.
 - The connected-wall increment overlaps conceptually with existing #22–23 (connected wall rendering and room validation). Preserve those issues and reconcile scope/acceptance later; do not automatically reassign or close them. Sprint 1 extension is tracked by parent issues #37–40 and 12 native sub-issues #41–52, all in milestone #1; these remain open pending team review and remote/browser verification.
 

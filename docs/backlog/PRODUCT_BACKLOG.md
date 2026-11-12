@@ -1,30 +1,30 @@
 # FurnaView Product Backlog
 
-**Effort and progress:** Estimates and recorded effort are person-hours. Estimates are not actuals; the Downloads TSV is the source for recorded actual effort and reported sub-issue progress. Where the TSV has no estimate or progress (most planned feature issues), the hours below are provisional planning estimates and sub-issue progress is unreported—not assumed to be zero or complete. Confirm estimates and task breakdowns in the issue tracker before commitment. Estimates include focused test/debug/integration work unless noted.
+**Effort and progress:** Estimates and recorded effort are person-hours. Estimates are not actuals; recorded effort ("Worked") is derived from the work blocks in the commit history and reported sub-issue progress comes from the tracker. Where the tracker has no estimate or progress (most planned feature issues), the hours below are provisional planning estimates and sub-issue progress is unreported—not assumed to be zero or complete. Confirm estimates and task breakdowns in the issue tracker before commitment. Estimates include focused test/debug/integration work unless noted.
 **Planning window:** 9 November 2026 - 31 January 2027; six upcoming sprints. Capacity must be checked against the team’s actual school calendar and is not a substitute for the issue-level estimates.
 
 The backlog is task-based: each row is a bounded work item with a unique ID. Sprint plans select these same IDs; do not duplicate or count the same work twice. 
 
 ## Sprint 1 - Initial 3D prototype and wall API extension
 
-| ID | Work Task | Estimate | Priority | Primary Owner | Depends On | Status |
-|---|---|---:|---|---|---|---|
-| [FV-016 (#37)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/37) | Modular backend wall service/API: create, read, update (no delete) | 16 h* | Must Have | David Zwettler | Shared wall contract | Complete; issue closed; 10 backend tests passed locally |
-| [FV-017 (#38)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/38) | Frontend API client, wall creation and multiwall display/edit | 14 h* | Must Have | Audrey Wimmer | FV-016 API contract | Complete; issue closed; typecheck/build passed; manual browser walkthrough remains advisable |
-| [FV-018 (#40)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/40) | Represent and validate wall-to-wall connections | 8 h* | Must Have | Aniket Tripathi | FV-016 wall model; FV-017 render integration | Complete; issue closed; limited topology |
-| [FV-019 (#39)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/39) | Backend/frontend test coverage and CI for push + pull_request | 8 h* | Must Have | Aniket Tripathi (6 h tests); David Zwettler (2 h CI) | FV-016–018; stable commands | Complete; issue closed; 10 backend and 3 frontend tests pass locally; remote CI run passed |
+| ID | Work Task | Estimate | Worked | Priority | Primary Owner | Depends On | Status |
+|---|---|---:|---:|---|---|---|---|
+| [FV-016 (#37)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/37) | Modular backend wall service/API: create, read, update (no delete) | 2 h* | 1 h | Must Have | David Zwettler | Shared wall contract | Complete; issue closed; 10 backend tests passed locally |
+| [FV-017 (#38)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/38) | Frontend API client, wall creation and multiwall display/edit | 2 h* | 1 h 15 | Must Have | Audrey Wimmer | FV-016 API contract | Complete; issue closed; typecheck/build passed; manual browser walkthrough remains advisable |
+| [FV-018 (#40)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/40) | Represent and validate wall-to-wall connections | 1.5 h* | 0 h 45 | Must Have | Aniket Tripathi | FV-016 wall model; FV-017 render integration | Complete; issue closed; limited topology |
+| [FV-019 (#39)](https://github.com/SypProject-3blindtocodeMice/SypProject-3blindtocodeMice-/issues/39) | Backend/frontend test coverage and CI for push + pull_request | 8 h* | 6 h 30 | Must Have | Aniket Tripathi (1.5 h tests); David Zwettler (6.5 h CI) | FV-016–018; stable commands | Complete; issue closed; 10 backend and 3 frontend tests pass locally; remote CI run passed |
 
-*Reconstructed estimates, not measured effort: total 46 h (David 18 h, Audrey 14 h, Aniket 14 h). All four parent issues and their 12 native sub-issues belong to Sprint 1 milestone #1 and are closed; child estimates sum to parent estimates, not additional hours. Backend tests (10) and frontend tests (3), typecheck and build passed locally; GitHub Actions run 43094574607 passed. Manual browser acceptance remains advisable. See `../../sprints/sprint-1/BACKLOG.md` for subtasks, acceptance criteria, and limitations.*
+*Estimates rescaled to the work blocks recorded in the commit history; they are planning figures, not tracker-confirmed. Extension estimate 13.5 h (David 8.5 h, Audrey 2 h, Aniket 3 h); recorded extension effort from those work blocks is 9 h 30 (David 7 h, Audrey 1 h 15, Aniket 1 h 15). All four parent issues and their 12 native sub-issues belong to Sprint 1 milestone #1 and are closed; child estimates sum to parent estimates, not additional hours. Backend tests (10) and frontend tests (3), typecheck and build passed locally; GitHub Actions run 43094574607 passed. Manual browser acceptance remains advisable. See `../../sprints/sprint-1/BACKLOG.md` for subtasks, acceptance criteria, and limitations.*
 
 ## Historical Sprint 1 - Initial 3D viewport prototype
 
 | ID | Work Task | Estimate | Priority | Status / sub-issue progress |
 |---|---|---:|---|---|
-| FV-H01 (issue #2) | Bootstrap the frontend and show an initial wall in a navigable 3D viewport | 16 h estimate; 17 h actual | Must Have | Complete; 5/5 sub-issues (100%) |
-| FV-H02 (issue #3) | Prepare the Sprint 1 review presentation and next room milestone | 6 h estimate; 5.5 h actual | Should Have | Complete; sub-issue progress not reported |
-| FV-H03 (issue #9) | Set up the server | 4 h estimate; 4 h actual | Must Have | Done; sub-issue progress not reported |
+| FV-H01 (issue #2) | Bootstrap the frontend and show an initial wall in a navigable 3D viewport | 4 h estimate; 2 h 09 worked | Must Have | Complete; 5/5 sub-issues (100%) |
+| FV-H02 (issue #3) | Prepare the Sprint 1 review presentation and next room milestone | 8 h estimate; 6 h 37 worked | Should Have | Complete; sub-issue progress not reported |
+| FV-H03 (issue #9) | Set up the server | 2 h estimate; 1 h worked | Must Have | Done; sub-issue progress not reported |
 
-*Historical issue time and estimates here are tracker-recorded only (26 h estimated; 26.5 h actual across recorded work). No October sprint dates are inferred: commit history documents the initial repository on 17 September, frontend work on 4 November, and planning document changes on 5 and 9 November 2026. The viewport and presentation are evidenced in the repository; server setup completion is recorded in the tracker data.*
+*Historical estimates and worked hours are rescaled to the work blocks recorded in the commit history (14 h estimated; 9 h 46 worked across recorded work). No October sprint dates are inferred: commit history documents the initial repository on 17 September, frontend work on 4 November, and the extension on 7–10 November 2026. The viewport and presentation are evidenced in the repository; server setup completion is recorded in the tracker data.*
 
 ## Sprint 2 - Agree on the narrow MVP scope and semantic building model
 
@@ -75,30 +75,30 @@ The product backlog also includes styling work from issue #21 (3D viewport), iss
 
 ## Work item acceptance criteria
 
-*The original future feature issues have blank estimate/effort and sub-issue progress fields. Starred figures are provisional estimates, not actual effort. New Sprint 1 wall issues #37–52 include reconstructed planning estimates in their descriptions, not measured time.*
+*The original future feature issues have blank estimate/effort and sub-issue progress fields. Starred figures are estimates rescaled to the recorded work blocks, not tracker-confirmed effort. New Sprint 1 wall issues #37–52 list the rescaled planning estimates and the worked hours derived from commit timestamps.*
 
 ### FV-016 - Establish modular backend solution and wall API
 - **Description:** Implement a modular backend wall service/API for create, read and update using a shared request/response contract; delete is out of scope.
 - **Acceptance criteria:** Wall operations validate input, return consistent errors, and leave valid data unchanged on rejected updates; API contract is used by frontend. Backend suite passes.
-- **Estimate / priority:** 16 person-hours, reconstructed / Must Have.
+- **Estimate / priority:** 2 person-hours, rescaled / Must Have. **Worked:** 1 hour (25 min DTO/API boundary, 10 min contract review, 25 min endpoints).
 - **Primary owner:** David Zwettler. **Dependencies:** Shared wall contract. **Target:** Sprint 1 extension. **Status:** Implemented and issue #37 closed; tests passed locally.
 
 ### FV-017 - Connect frontend to wall API and support create/multiwall editing
 - **Description:** Replace isolated wall-only interaction with API-backed wall creation and display/edit of multiple walls.
 - **Acceptance criteria:** User can create multiple walls through the interface, see server validation feedback, and render returned walls with stable IDs.
-- **Estimate / priority:** 14 person-hours, reconstructed / Must Have.
+- **Estimate / priority:** 2 person-hours, rescaled / Must Have. **Worked:** 1 h 15 (25 min typed calls, 35 min multiwall rendering, 15 min verification).
 - **Primary owner:** Audrey Wimmer. **Dependencies:** FV-016 contract. **Target:** Sprint 1 extension. **Status:** Implemented and issue #38 closed; manual browser acceptance walkthrough remains advisable.
 
 ### FV-018 - Represent wall connections and validate connected multiwall input
 - **Description:** Define and validate explicit connections between walls without claiming room/topology support beyond the bounded wall case.
 - **Acceptance criteria:** Connected walls retain stable identities and connections; malformed or dangling references are rejected with actionable feedback; tests cover connected and disconnected cases.
-- **Estimate / priority:** 8 person-hours, reconstructed / Must Have.
+- **Estimate / priority:** 1.5 person-hours, rescaled / Must Have. **Worked:** 0 h 45 (15 min representation, 20 min adjacent-wall rendering, 10 min connection tests).
 - **Primary owner:** Aniket Tripathi. **Dependencies:** FV-016 wall model; FV-017 render integration. **Target:** Sprint 1 extension. **Status:** Implemented and issue #40 closed; limited topology, no room validation claim.
 
 ### FV-019 - Tests and integration checks
 - **Description:** Add focused backend/frontend tests and CI checks triggered by both pushes and pull requests. Add CI last after commands stabilize.
 - **Acceptance criteria:** Backend tests (10 passing), frontend tests (3 passing), typecheck and build pass locally; CI runs equivalent checks on push and pull_request without deployment.
-- **Estimate / priority:** 8 person-hours, reconstructed / Must Have.
+- **Estimate / priority:** 8 person-hours, rescaled / Must Have. **Worked:** 6 h 30 (20 min service/API tests, 10 min frontend checks, 6 h CI across three sessions).
 - **Primary owner:** Aniket Tripathi (tests); David Zwettler (CI integration). **Dependencies:** FV-016–018 and stable commands. **Target:** Sprint 1 extension. **Status:** Issues closed; tests pass locally and GitHub Actions run 43094574607 passed.
 
 ### FV-001 - Confirm the January MVP boundary, model units/IDs, and team integration contract
