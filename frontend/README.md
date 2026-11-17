@@ -1,27 +1,28 @@
 # FurnaView frontend
 
-A minimal, full-window 3D viewport built with React, TypeScript, Vite, Three.js, React Three Fiber, and Drei. No backend is needed to run it.
+A minimal, full-window 3D viewport built with React, TypeScript, Vite, Three.js, React Three Fiber, and Drei. The wall API backend is required for loading and saving walls.
 
 ## Run locally
 
-Install Node.js 20.19+ or 22.12+ (Node.js 24 is also supported), then from this directory:
+Install Node.js 24 and the .NET 10 SDK, then run `npm run dev` from the repository root to start both servers. Alternatively, with the API already running on port 5080, from this directory:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Left-drag to orbit, right-drag to pan, and scroll to zoom. Click the wall to select it (its color brightens); use the arrow keys to move it across the XZ ground plane in 0.25 m steps (left/right = X, up/down = Z). Hold Shift and press Left/Right to turn it around its vertical axis, or Shift+Up/Down to tip it around its base until it lies flat on either side (limited to ±90°). Each keydown turns or tips it 1°; holding a key repeats at your keyboard's normal repeat rate. Click empty space to deselect it. Run `npm run typecheck` for a TypeScript check and `npm run build` for a production build.
+Open the local URL printed by Vite. Add walls using **+ Add Wall**; an empty server starts with an empty grid. Left-drag to orbit, right-drag to pan, and scroll to zoom. Click a wall to select it (its color brightens); use the arrow keys to move it across the XZ ground plane in 0.25 m steps (left/right = X, up/down = Z). Hold Shift and press Left/Right to turn it around its vertical axis, or Shift+Up/Down to tip it around its base until it lies flat on either side (limited to ±90°). Click empty space to deselect it. Run `npm run typecheck` for a TypeScript check and `npm run build` for a production build.
 
 ## Where things live
 
 - `index.html` and `src/main.tsx`: browser and React entry points.
-- `src/App.tsx` and `src/styles.css`: full-window canvas, temporary selection/movement state, keyboard controls and wall details overlay.
-- `src/model/wall.ts`: typed wall data, stable ID, dimensions and position in meters, plus turn and tilt angles in degrees.
-- `src/viewer3d/Scene.tsx`: assembles the background, lighting, grid, wall and controls.
-- `src/viewer3d/WallMesh.tsx`: derives selectable geometry from wall data; does not own the wall's position.
+- `src/App.tsx` and `src/styles.css`: full-window canvas, multiple walls, selection/movement state and controls.
+- `src/api/`: backend communication and API request/response types.
+- `src/model/wall.ts`: wall geometry and interaction helpers.
+- `src/viewer3d/Scene.tsx`: assembles the background, lighting, grid, walls and controls.
+- `src/viewer3d/WallMesh.tsx`: derives selectable geometry from each wall; does not own its position.
 - `src/viewer3d/GroundGrid.tsx`: XZ ground grid and origin markers.
 - `src/viewer3d/CameraControls.tsx`: orbit, pan and zoom interaction.
 - `src/viewer3d/sceneConfig.ts`: initial camera and grid settings.
 
-This is one movable prototype wall, not a validated building model or a complete room. Future building elements can be modeled separately from their rendering components and composed in `Scene.tsx`.
+Walls can be connected by endpoints, but this is not a validated room or complete building model. Wall data is stored only in memory and is lost when the backend restarts.

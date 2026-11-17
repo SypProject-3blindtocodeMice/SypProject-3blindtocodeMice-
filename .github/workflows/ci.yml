@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
   push:
-    branches:
-      - main
 
 permissions:
   contents: read
@@ -49,7 +47,44 @@ jobs:
           done
 
       - name: Validate OpenCode configuration
-        run: python -m json.tool opencode.json > /dev/null
+        run: python -c "import json; from pathlib import Path; json.loads(Path('opencode.json').read_text(encoding='utf-8-sig'))"
 
       - name: Check whitespace errors
         run: git diff --check
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore backend dependencies
+        run: dotnet restore backend/FurnaView.Api.Tests/FurnaView.Api.Tests.csproj
+
+      - name: Build backend
+        run: dotnet build backend/FurnaView.Api/FurnaView.Api.csproj --no-restore
+
+      - name: Test backend
+        run: dotnet test backend/FurnaView.Api.Tests/FurnaView.Api.Tests.csproj --no-restore
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Typecheck frontend
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Test frontend
+        working-directory: frontend
+        run: npm test
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
