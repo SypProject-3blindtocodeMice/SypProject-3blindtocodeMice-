@@ -62,6 +62,8 @@ This is a **candidate layout**: propose actual file additions in a scoped plan. 
 - `ZoneTimeSeries`: `[roomId,time,value,unit]`, semantic metric and assumptions.
 - `SpatialField` (future): spatial coordinates or mesh reference, time and field components; not interchangeable with `ZoneTimeSeries`.
 
+**Module handoff:** per-module input/output shapes between the editor, validation, 3D and analysis modules are specified in `docs/MODEL_HANDOFF.md`.
+
 **Coordinate proposal requiring explicit ADR:** global meters, right-handed axes, ground plane X/Z and Y-up to align with Three.js; building north/rotation as separate metadata. Keep plan pixel coordinates and calibration transform distinct. Confirm coordinate mapping and unit semantics before implementation; do not silently choose alternatives in separate layers.
 
 ## 5. API and interface guidelines

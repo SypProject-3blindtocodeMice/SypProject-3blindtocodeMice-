@@ -1,0 +1,109 @@
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "Two-Room Shared Wall",
+  "revision": 1,
+  "rooms": [
+    {
+      "id": "11111111-2222-3333-4444-555555555555",
+      "name": "Living Room",
+      "height": 2.8,
+      "area": 20.0,
+      "volume": 56.0,
+      "wallIds": [
+        "13131313-3535-6767-7979-919191919191",
+        "14141414-3636-6868-7a7a-929292929292",
+        "15151515-3737-6969-7b7b-939393939393",
+        "12121212-3434-5656-7878-909090909090"
+      ]
+    },
+    {
+      "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "name": "Bedroom",
+      "height": 2.8,
+      "area": 20.0,
+      "volume": 56.0,
+      "wallIds": [
+        "16161616-3838-6a6a-7c7c-949494949494",
+        "17171717-3939-6b6b-7d7d-959595959595",
+        "18181818-3a3a-6c6c-7e7e-969696969696",
+        "12121212-3434-5656-7878-909090909090"
+      ]
+    }
+  ],
+  "walls": [
+    {
+      "id": "13131313-3535-6767-7979-919191919191",
+      "name": "Living Room West Wall",
+      "start": { "x": 0, "z": 0 },
+      "end": { "x": 0, "z": 5 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    },
+    {
+      "id": "14141414-3636-6868-7a7a-929292929292",
+      "name": "Living Room North Wall",
+      "start": { "x": 0, "z": 5 },
+      "end": { "x": 4, "z": 5 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    },
+    {
+      "id": "15151515-3737-6969-7b7b-939393939393",
+      "name": "Living Room South Wall",
+      "start": { "x": 0, "z": 0 },
+      "end": { "x": 4, "z": 0 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    },
+    {
+      "id": "12121212-3434-5656-7878-909090909090",
+      "name": "Shared Wall",
+      "start": { "x": 4, "z": 0 },
+      "end": { "x": 4, "z": 5 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    },
+    {
+      "id": "16161616-3838-6a6a-7c7c-949494949494",
+      "name": "Bedroom North Wall",
+      "start": { "x": 4, "z": 5 },
+      "end": { "x": 8, "z": 5 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    },
+    {
+      "id": "17171717-3939-6b6b-7d7d-959595959595",
+      "name": "Bedroom South Wall",
+      "start": { "x": 4, "z": 0 },
+      "end": { "x": 8, "z": 0 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    },
+    {
+      "id": "18181818-3a3a-6c6c-7e7e-969696969696",
+      "name": "Bedroom East Wall",
+      "start": { "x": 8, "z": 0 },
+      "end": { "x": 8, "z": 5 },
+      "height": 2.8,
+      "thickness": 0.15,
+      "tiltDegrees": 0
+    }
+  ],
+  "openings": [
+    {
+      "id": "19191919-3b3b-6d6d-7f7f-979797979797",
+      "kind": "door",
+      "hostWallId": "12121212-3434-5656-7878-909090909090",
+      "offset": 1.0,
+      "width": 1.0,
+      "height": 2.1,
+      "state": "closed"
+    }
+  ]
+}
