@@ -2,6 +2,7 @@
 import Footer from '../components/layout/footer'
 import './about-style.css'
 
+// update about page, showing link to the 3BlindToCodeMice organization and the creators github pfp
 export default function AboutPage() {
   return (
     <div className="about">
@@ -15,9 +16,6 @@ export default function AboutPage() {
         <p>
           The frontend is built with React, TypeScript, Vite and Three.js. A .NET API stores the walls.
         </p>
-        {/*<div>*/}
-        {/*  <Link to="/builder" className="btn btn-primary">Try the builder</Link>*/}
-        {/*</div>*/}
       </section>
       <Footer />
     </div>

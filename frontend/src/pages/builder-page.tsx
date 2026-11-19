@@ -4,9 +4,11 @@ import { connectWalls, createWall, getWalls, updateWall } from '../api/walls'
 import { moveWall, tipWall, turnWall, type Wall } from '../model/wall'
 import { Scene } from '../viewer3d/Scene'
 import { camera } from '../viewer3d/sceneConfig'
+//import ControlsHelp from '../components/builder/controls-help'
 import './builder-style.css'
-import NavBar from "../components/layout/nav-bar.tsx";
 
+const fieldLabels = { startX: 'Start X', startZ: 'Start Z', endX: 'End X', endZ: 'End Z', height: 'Height', thickness: 'Thickness' } as const
+const fieldKeys = ['startX', 'startZ', 'endX', 'endZ', 'height', 'thickness'] as const
 
 const moveStep = 0.25
 const rotationStep = 1
@@ -23,6 +25,8 @@ export default function BuilderPage() {
   const [form, setForm] = useState(emptyForm)
   const [edit, setEdit] = useState({ startX: '', startZ: '', endX: '', endZ: '', height: '', thickness: '' })
   const [connection, setConnection] = useState({ endpoint: 'end' as 'start' | 'end', targetWallId: '', targetEndpoint: 'start' as 'start' | 'end' })
+  // UI-only state for the new layout (does not affect wall logic)
+  const [panelOpen, setPanelOpen] = useState(true)
   const selectedWall = walls.find((wall) => wall.id === selectedWallId) ?? null
 
   useEffect(() => {
@@ -107,24 +111,68 @@ export default function BuilderPage() {
     await commit(selectedWall.id, next)
   }
 
-  return <main className="viewport" aria-label="Interactive 3D viewport">
-    <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}><Scene walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} /></Canvas>
-    <aside className="sidebar">
-      <h1>Building walls</h1>
-      {error && <p className="error" role="alert">{error}</p>}
-      <button type="button" onClick={() => setShowAdd((value) => !value)}>+ Add Wall</button>
-      {showAdd && <form onSubmit={addWall} className="wall-form">
-        <h2>New wall (metres)</h2>
-        <label>Name<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-        <div className="form-grid">{(['startX', 'startZ', 'endX', 'endZ', 'height', 'thickness'] as const).map((key) => <label key={key}>{({ startX: 'Start X', startZ: 'Start Z', endX: 'End X', endZ: 'End Z', height: 'Height', thickness: 'Thickness' })[key]}<input type="number" step="0.1" required value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></label>)}</div>
-        <button type="submit">Add wall</button>
-      </form>}
-      <h2>Walls ({walls.length})</h2>
-      <ul className="wall-list">{walls.map((wall) => <li key={wall.id}><button className={selectedWallId === wall.id ? 'selected' : ''} onClick={() => setSelectedWallId(wall.id)}>{wall.name}<small>{wall.length.toFixed(2)} m</small></button></li>)}</ul>
-      {selectedWall && <section className="wall-details"><strong>{selectedWall.name}</strong><span>Length: {selectedWall.length.toFixed(2)} m · Height: {selectedWall.height} m</span><span>Thickness: {selectedWall.thickness} m</span><span>Tilt: {selectedWall.tiltDegrees}°</span><small>Arrows: move 0.25 m · Shift+Left/Right: turn · Shift+Up/Down: tilt</small>
-        <form onSubmit={saveWall} className="wall-form"><h2>Edit geometry (metres)</h2><div className="form-grid">{(['startX', 'startZ', 'endX', 'endZ', 'height', 'thickness'] as const).map((key) => <label key={key}>{({ startX: 'Start X', startZ: 'Start Z', endX: 'End X', endZ: 'End Z', height: 'Height', thickness: 'Thickness' })[key]}<input type="number" step="any" required value={edit[key]} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} /></label>)}</div><button type="submit">Save wall</button></form>
-        {walls.length > 1 && <form onSubmit={connect} className="connect-form"><h2>Connect endpoint</h2><select value={connection.endpoint} onChange={(e) => setConnection({ ...connection, endpoint: e.target.value as 'start' | 'end' })}><option value="start">Selected wall: start</option><option value="end">Selected wall: end</option></select><select required value={connection.targetWallId} onChange={(e) => setConnection({ ...connection, targetWallId: e.target.value })}><option value="">Choose wall…</option>{walls.filter((w) => w.id !== selectedWall.id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select><select value={connection.targetEndpoint} onChange={(e) => setConnection({ ...connection, targetEndpoint: e.target.value as 'start' | 'end' })}><option value="start">Target: start</option><option value="end">Target: end</option></select><button>Connect</button></form>}
-      </section>}
+  return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
+    <main className="viewport" aria-label="Interactive 3D viewport">
+      <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}><Scene walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} /></Canvas>
+
+    </main>
+
+    <aside className="sidebar" aria-label="Wall editor">
+      <div className="sidebar-head">
+        <div>
+          <h1>Building walls</h1>
+          <p>{walls.length === 0 ? 'Start by adding a wall' : `${walls.length} wall${walls.length === 1 ? '' : 's'} in this room`}</p>
+        </div>
+        <div className="sidebar-head-actions">
+          {/*<ControlsHelp />*/}
+          <button type="button" className="icon-btn panel-toggle" aria-expanded={panelOpen} aria-label={panelOpen ? 'Collapse panel' : 'Expand panel'} onClick={() => setPanelOpen((value) => !value)}>{panelOpen ? '▾' : '▴'}</button>
+        </div>
+      </div>
+
+      <div className="sidebar-body">
+        {error && <p className="error" role="alert">{error}</p>}
+
+        <section className="panel-section">
+          <button type="button" className={`btn btn-block ${showAdd ? '' : 'btn-primary'}`} onClick={() => setShowAdd((value) => !value)}>{showAdd ? 'Cancel' : '+ Add wall'}</button>
+          {showAdd && <form onSubmit={addWall} className="wall-form">
+            <h2>New wall <span>(metres)</span></h2>
+            <label className="field">Name<input className="input" required placeholder="Living room north" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+            <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="0.1" required value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></label>)}</div>
+            <button type="submit" className="btn btn-primary btn-block">Add wall</button>
+          </form>}
+        </section>
+
+        <section className="panel-section">
+          <h2>Walls <span className="count">{walls.length}</span></h2>
+          {walls.length === 0
+            ? <p className="empty">No walls yet. Add your first wall to see it on the grid.</p>
+            : <ul className="wall-list">{walls.map((wall) => <li key={wall.id}><button type="button" className={selectedWallId === wall.id ? 'selected' : ''} onClick={() => setSelectedWallId(wall.id)}><span>{wall.name}</span><small>{wall.length.toFixed(2)} m</small></button></li>)}</ul>}
+        </section>
+
+        {selectedWall && <section className="panel-section wall-details">
+          <h2>{selectedWall.name}</h2>
+          <dl className="stats">
+            <div><dt>Length</dt><dd>{selectedWall.length.toFixed(2)} m</dd></div>
+            <div><dt>Height</dt><dd>{selectedWall.height} m</dd></div>
+            <div><dt>Thickness</dt><dd>{selectedWall.thickness} m</dd></div>
+            <div><dt>Tilt</dt><dd>{selectedWall.tiltDegrees}°</dd></div>
+          </dl>
+
+          <form onSubmit={saveWall} className="wall-form">
+            <h3>Edit geometry <span>(metres)</span></h3>
+            <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="any" required value={edit[key]} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} /></label>)}</div>
+            <button type="submit" className="btn btn-primary btn-block">Save wall</button>
+          </form>
+
+          {walls.length > 1 && <form onSubmit={connect} className="wall-form connect-form">
+            <h3>Connection</h3>
+            <label className="field">From this wall<select className="select" value={connection.endpoint} onChange={(e) => setConnection({ ...connection, endpoint: e.target.value as 'start' | 'end' })}><option value="start">Start point</option><option value="end">End point</option></select></label>
+            <label className="field">To wall<select className="select" required value={connection.targetWallId} onChange={(e) => setConnection({ ...connection, targetWallId: e.target.value })}><option value="">Choose wall…</option>{walls.filter((w) => w.id !== selectedWall.id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+            <label className="field">At its<select className="select" value={connection.targetEndpoint} onChange={(e) => setConnection({ ...connection, targetEndpoint: e.target.value as 'start' | 'end' })}><option value="start">Start point</option><option value="end">End point</option></select></label>
+            <button type="submit" className="btn btn-block">Connect</button>
+          </form>}
+        </section>}
+      </div>
     </aside>
-  </main>
+  </div>
 }
