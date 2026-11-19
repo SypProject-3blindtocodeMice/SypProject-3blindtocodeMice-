@@ -3,7 +3,6 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 
-const FACE_SIZE = 0.98
 const CUBE_SCALE = 0.38
 const CAMERA_DISTANCE = 4
 
@@ -14,6 +13,15 @@ const faces = [
   { label: 'Left', normal: new THREE.Vector3(-1, 0, 0), color: '#547b91' },
   { label: 'Top', normal: new THREE.Vector3(0, 1, 0), color: '#7896a7' },
   { label: 'Bottom', normal: new THREE.Vector3(0, -1, 0), color: '#7896a7' },
+]
+
+const boxFaceMaterials = [
+  { color: '#547b91' }, // right (+X)
+  { color: '#547b91' }, // left (-X)
+  { color: '#7896a7' }, // top (+Y)
+  { color: '#7896a7' }, // bottom (-Y)
+  { color: '#3d647e' }, // front (+Z)
+  { color: '#3d647e' }, // back (-Z)
 ]
 
 type OrbitControlsTarget = {
@@ -45,13 +53,14 @@ export function ViewCube() {
     controls: state.controls as unknown as OrbitControlsTarget | undefined,
   }))
 
+  const faceMaterials = useMemo(
+    () => boxFaceMaterials.map(({ color }) => new THREE.MeshStandardMaterial({ color, roughness: 0.65 })),
+    [],
+  )
   const facesWithOrientation = useMemo(
     () => faces.map((face) => ({
       ...face,
-      rotation: new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 0, 1),
-        face.normal,
-      ),
+      rotation: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), face.normal),
     })),
     [],
   )
@@ -72,7 +81,9 @@ export function ViewCube() {
 
     camera.updateMatrixWorld()
     group.current.position.copy(camera.localToWorld(localPosition))
-    camera.getWorldQuaternion(group.current.quaternion)
+    // Keep the cube aligned to world axes. Because its position is camera-relative,
+    // the camera's movement naturally changes which faces are visible.
+    group.current.quaternion.identity()
     group.current.quaternion.multiply(manualRotation.current)
   })
 
@@ -120,6 +131,7 @@ export function ViewCube() {
       const pointerTarget = event.target as unknown as PointerCaptureTarget | null
       pointerTarget?.releasePointerCapture(event.pointerId)
       drag.current = null
+      if (dragged.current) manualRotation.current.identity()
     }
   }
 
@@ -155,27 +167,28 @@ export function ViewCube() {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={() => { drag.current = null }}
+      onPointerCancel={() => {
+        drag.current = null
+        manualRotation.current.identity()
+      }}
     >
+      <mesh
+        material={faceMaterials}
+        onClick={(event) => {
+          if (event.face) snapToFace(event.face.normal, event)
+        }}
+        renderOrder={1000}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+      </mesh>
       {facesWithOrientation.map((face) => (
         <group
           key={face.label}
-          position={face.normal.clone().multiplyScalar(0.5)}
+          position={face.normal.clone().multiplyScalar(0.502)}
           quaternion={face.rotation}
+          renderOrder={1001}
         >
-          <mesh
-            onClick={(event) => snapToFace(face.normal, event)}
-            renderOrder={1000}
-          >
-            <planeGeometry args={[FACE_SIZE, FACE_SIZE]} />
-            <meshStandardMaterial
-              color={face.color}
-              roughness={0.65}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
           <Text
-            position={[0, 0, 0.012]}
             fontSize={0.17}
             color="white"
             anchorX="center"
