@@ -4,7 +4,7 @@ import { connectWalls, createWall, getWalls, updateWall } from '../api/walls'
 import { moveWall, tipWall, turnWall, type Wall } from '../model/wall'
 import { Scene } from '../viewer3d/Scene'
 import { camera } from '../viewer3d/sceneConfig'
-//import ControlsHelp from '../components/builder/controls-help'
+import ControlsHelp from '../components/builder/controls-help'
 import './builder-style.css'
 
 const fieldLabels = { startX: 'Start X', startZ: 'Start Z', endX: 'End X', endZ: 'End Z', height: 'Height', thickness: 'Thickness' } as const
@@ -124,7 +124,7 @@ export default function BuilderPage() {
           <p>{walls.length === 0 ? 'Start by adding a wall' : `${walls.length} wall${walls.length === 1 ? '' : 's'} in this room`}</p>
         </div>
         <div className="sidebar-head-actions">
-          {/*<ControlsHelp />*/}
+          <ControlsHelp />
           <button type="button" className="icon-btn panel-toggle" aria-expanded={panelOpen} aria-label={panelOpen ? 'Collapse panel' : 'Expand panel'} onClick={() => setPanelOpen((value) => !value)}>{panelOpen ? '▾' : '▴'}</button>
         </div>
       </div>
