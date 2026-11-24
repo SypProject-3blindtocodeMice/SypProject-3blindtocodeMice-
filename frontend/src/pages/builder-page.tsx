@@ -1,8 +1,10 @@
-﻿import { useCallback, useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { connectWalls, createWall, deleteWall, getWalls, updateWall } from '../api/walls'
-import { moveWall, tipWall, turnWall, type Wall } from '../model/wall'
+import { connectWalls, createWall, createWallDraft, deleteWall, getWalls, updateWall } from '../api/walls'
+import { moveWall, tipWall, turnWall, type Point2, type Wall } from '../model/wall'
+import { emptyDraft, placePoint, type WallDraft } from '../model/wall-draft'
 import { Scene } from '../viewer3d/Scene'
+import { draftWallDimensions } from '../viewer3d/WallDrawing'
 import { camera, type ViewMode } from '../viewer3d/sceneConfig'
 import ControlsHelp from '../components/builder/controls-help'
 import { ViewToggler } from '../components/view_toggler/view-toggler'
@@ -24,6 +26,12 @@ export default function BuilderPage() {
   const [selectedWallId, setSelectedWallId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [draft, setDraft] = useState<WallDraft | null>(null)
+  const [shiftHeld, setShiftHeld] = useState(false)
+  const [parallel, setParallel] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const savingDraftRef = useRef(false)
+  const viewportRef = useRef<HTMLElement>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [edit, setEdit] = useState({ startX: '', startZ: '', endX: '', endZ: '', height: '', thickness: '' })
@@ -31,6 +39,7 @@ export default function BuilderPage() {
   // UI-only state for the new layout (does not affect wall logic)
   const [panelOpen, setPanelOpen] = useState(true)
   const selectedWall = walls.find((wall) => wall.id === selectedWallId) ?? null
+  const drawing = draft !== null
 
   useEffect(() => {
     const wall = walls.find((item) => item.id === selectedWallId)
@@ -55,7 +64,7 @@ export default function BuilderPage() {
   }, [reload])
 
   useEffect(() => {
-    if (!selectedWallId || deleting) return
+    if (!selectedWallId || deleting || drawing) return
     const activeWallId = selectedWallId
     function handleKeyDown(event: KeyboardEvent) {
       if (event.altKey || event.ctrlKey || event.metaKey) return
@@ -86,7 +95,78 @@ export default function BuilderPage() {
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
     return () => { window.removeEventListener('keydown', handleKeyDown); window.removeEventListener('keyup', handleKeyUp) }
-  }, [selectedWallId, commit, deleting])
+  }, [selectedWallId, commit, deleting, drawing])
+
+  function startDrawing() {
+    if (deleting || pendingRef.current) return
+    setSelectedWallId(null)
+    setShowAdd(false)
+    setError('')
+    setDraft(emptyDraft)
+  }
+
+  function cancelDrawing() {
+    if (savingDraftRef.current) return
+    setDraft(null)
+    setShiftHeld(false)
+    setParallel(false)
+    setError('')
+  }
+
+  function addDraftPoint(point: Point2, shift: boolean) {
+    if (savingDraftRef.current) return
+    viewportRef.current?.focus({ preventScroll: true })
+    setDraft((current) => current && placePoint(current, point, shift || parallel))
+  }
+
+  async function finishDrawing() {
+    if (!draft?.segments.length || savingDraftRef.current) return
+    savingDraftRef.current = true
+    setSavingDraft(true)
+    try {
+      const saved = await createWallDraft(draft.segments.map((segment, index) => ({
+        ...segment, ...draftWallDimensions, name: `Wall ${walls.length + index + 1}`,
+      })))
+      setWalls((current) => [...current, ...saved])
+      setDraft(null)
+      setShiftHeld(false)
+      setParallel(false)
+      setError('')
+    } catch (e) {
+      setError(`Could not save drawing: ${String(e)}`)
+    } finally {
+      savingDraftRef.current = false
+      setSavingDraft(false)
+    }
+  }
+
+  const finishFromKeyboard = useEffectEvent(finishDrawing)
+  const cancelFromKeyboard = useEffectEvent(cancelDrawing)
+  useEffect(() => {
+    if (!drawing) return
+    function keyDown(event: KeyboardEvent) {
+      if (event.key === 'Shift') setShiftHeld(true)
+      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        event.preventDefault()
+        cancelFromKeyboard()
+      }
+      if (event.key === 'Enter' && !(event.target instanceof HTMLElement && event.target.closest('button, a, input, textarea, select, [contenteditable]'))) {
+        event.preventDefault()
+        void finishFromKeyboard()
+      }
+    }
+    function keyUp(event: KeyboardEvent) { if (event.key === 'Shift') setShiftHeld(false) }
+    function blur() { setShiftHeld(false) }
+    window.addEventListener('keydown', keyDown)
+    window.addEventListener('keyup', keyUp)
+    window.addEventListener('blur', blur)
+    return () => {
+      window.removeEventListener('keydown', keyDown)
+      window.removeEventListener('keyup', keyUp)
+      window.removeEventListener('blur', blur)
+    }
+  }, [drawing])
 
   async function addWall(event: React.FormEvent) {
     event.preventDefault()
@@ -133,9 +213,10 @@ export default function BuilderPage() {
   }
 
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
-    <section className="viewport" aria-label={`${view} building viewport`}>
-      <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}>
-        <Scene view={view} walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} />
+    <section ref={viewportRef} tabIndex={-1} className={`viewport${drawing ? ' viewport-drawing' : ''}`} aria-label={`${view} building viewport`}>
+      <Canvas camera={camera} onPointerMissed={() => !drawing && setSelectedWallId(null)}>
+        <Scene view={view} walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => !drawing && setSelectedWallId(null)}
+          drawing={draft ? { draft, parallel: parallel || shiftHeld, saving: savingDraft, onPlace: addDraftPoint } : undefined} />
       </Canvas>
     </section>
 
@@ -159,7 +240,16 @@ export default function BuilderPage() {
         {error && <p className="error" role="alert">{error}</p>}
 
         <section className="panel-section">
-          <button type="button" className={`btn btn-block ${showAdd ? '' : 'btn-primary'}`} onClick={() => setShowAdd((value) => !value)}>{showAdd ? 'Cancel' : '+ Add wall'}</button>
+          <button type="button" className="btn btn-primary btn-block" aria-pressed={drawing} disabled={savingDraft} onClick={drawing ? cancelDrawing : startDrawing}>Draw wall</button>
+          {draft ? <div className="wall-form">
+            <p className="wall-hint" role="status">{draft.tip ? `${draft.segments.length} draft segments. Click or tap to place the next point.` : 'Click or tap the grid to place the first point.'} Drag to navigate; scroll or pinch to zoom.</p>
+            <button type="button" className="btn btn-block" aria-pressed={parallel || shiftHeld} disabled={!draft.base || savingDraft} onClick={() => setParallel((value) => !value)}>Parallel sides</button>
+            <p className="wall-hint">Hold <kbd>Shift</kbd> or toggle Parallel sides to draw from both ends of the last wall.</p>
+            <div className="form-grid">
+              <button type="button" className="btn btn-primary" disabled={!draft.segments.length || savingDraft} onClick={finishDrawing}>{savingDraft ? 'Saving…' : 'Finish (Enter)'}</button>
+              <button type="button" className="btn" disabled={savingDraft} onClick={cancelDrawing}>Cancel (Esc)</button>
+            </div>
+          </div> : <button type="button" className="btn btn-block" onClick={() => setShowAdd((value) => !value)}>{showAdd ? 'Cancel' : '+ Add wall by coordinates'}</button>}
           {showAdd && <form onSubmit={addWall} className="wall-form">
             <h2>New wall <span>(metres)</span></h2>
             <label className="field">Name<input className="input" required placeholder="Living room north" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
@@ -172,7 +262,7 @@ export default function BuilderPage() {
           <h2>Walls <span className="count">{walls.length}</span></h2>
           {walls.length === 0
             ? <p className="empty">No walls yet. Add your first wall to see it on the grid.</p>
-            : <ul className="wall-list">{walls.map((wall) => <li key={wall.id}><button type="button" className={selectedWallId === wall.id ? 'selected' : ''} onClick={() => setSelectedWallId(wall.id)}><span>{wall.name}</span><small>{wall.length.toFixed(2)} m</small></button></li>)}</ul>}
+            : <ul className="wall-list">{walls.map((wall) => <li key={wall.id}><button type="button" disabled={drawing} className={selectedWallId === wall.id ? 'selected' : ''} onClick={() => setSelectedWallId(wall.id)}><span>{wall.name}</span><small>{wall.length.toFixed(2)} m</small></button></li>)}</ul>}
         </section>
 
         {selectedWall && <section className="panel-section wall-details">

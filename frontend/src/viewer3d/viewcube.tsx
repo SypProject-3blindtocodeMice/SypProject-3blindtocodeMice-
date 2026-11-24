@@ -5,6 +5,7 @@ import * as THREE from 'three'
 
 const CUBE_SCALE = 0.38
 const CAMERA_DISTANCE = 4
+export const viewCubePointerDowns = new WeakSet<PointerEvent>()
 
 const faces = [
   { label: 'Front', normal: new THREE.Vector3(0, 0, 1), color: '#3d647e' },
@@ -84,6 +85,7 @@ export function ViewCube({ camera }: { camera: THREE.PerspectiveCamera }) {
 
   function handlePointerDown(event: ThreeEvent<PointerEvent>) {
     event.stopPropagation()
+    viewCubePointerDowns.add(event.nativeEvent)
     dragged.current = false
     drag.current = {
       pointerId: event.pointerId,

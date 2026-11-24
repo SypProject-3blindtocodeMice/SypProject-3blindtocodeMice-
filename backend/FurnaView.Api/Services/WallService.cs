@@ -40,6 +40,33 @@ public sealed class WallService(IWallRepository repository) : IWallService
         }
     }
 
+    public IReadOnlyList<WallResponse> CreateDraft(IReadOnlyList<CreateWallRequest?> requests)
+    {
+        if (requests.Count == 0) throw new WallValidationException("A draft requires at least one wall.");
+        // Validate every segment before adding any, so a failed draft can be retried without duplicates.
+        var anchors = new Dictionary<FloorPoint, Anchor>();
+        Anchor GetAnchor(FloorPoint point)
+        {
+            if (!anchors.TryGetValue(point, out var anchor))
+                anchors.Add(point, anchor = new Anchor(point.X, point.Z));
+            return anchor;
+        }
+
+        var walls = requests.Select(request =>
+        {
+            if (request is null) throw new WallValidationException("Draft walls cannot be null.");
+            Validate(request.Name, request.Start, request.End, request.Height, request.Thickness, request.TiltDegrees);
+            return new Wall(Guid.NewGuid(), request.Name!.Trim(), GetAnchor(request.Start!), GetAnchor(request.End!),
+                request.Height, request.Thickness, request.TiltDegrees);
+        }).ToArray();
+
+        lock (_gate)
+        {
+            foreach (var wall in walls) repository.Add(wall);
+            return walls.Select(Map).ToArray();
+        }
+    }
+
     public WallResponse? Update(Guid id, UpdateWallRequest request)
     {
         Validate(request.Name, request.Start, request.End, request.Height, request.Thickness, request.TiltDegrees);

@@ -12,6 +12,15 @@
   background: var(--color-scene);
 }
 
+.viewport-drawing canvas {
+  cursor: crosshair;
+}
+
+.builder .btn[aria-pressed="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
 .viewport-view-toggle {
   position: absolute;
   right: 1rem;

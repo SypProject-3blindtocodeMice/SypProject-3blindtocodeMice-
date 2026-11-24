@@ -7,6 +7,7 @@ import { CameraControls } from './CameraControls'
 import { GroundGrid } from './GroundGrid'
 import type { ViewMode } from './sceneConfig'
 import { WallMesh } from './WallMesh'
+import { WallDrawing } from './WallDrawing'
 import { ViewCube } from './viewcube'
 
 type SceneProps = {
@@ -15,6 +16,7 @@ type SceneProps = {
   selectedWallId: string | null
   onSelectWall: (id: string) => void
   onDeselectWall: () => void
+  drawing?: React.ComponentProps<typeof WallDrawing>
 }
 
 function SceneCameras({ view }: { view: ViewMode }) {
@@ -98,15 +100,16 @@ function SceneCameras({ view }: { view: ViewMode }) {
   )
 }
 
-export function Scene({ view, walls, selectedWallId, onSelectWall, onDeselectWall }: SceneProps) {
+export function Scene({ view, walls, selectedWallId, onSelectWall, onDeselectWall, drawing }: SceneProps) {
   return (
     <>
       <color attach="background" args={['#202830']} />
       <ambientLight intensity={1} />
       <directionalLight position={[8, 12, 6]} intensity={1.5} />
       <GroundGrid onDeselect={onDeselectWall} />
-      {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={onSelectWall} />)}
+      {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={drawing ? undefined : onSelectWall} />)}
       <SceneCameras view={view} />
+      {drawing && <WallDrawing {...drawing} />}
     </>
   )
 }

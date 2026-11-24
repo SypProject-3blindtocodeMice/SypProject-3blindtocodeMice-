@@ -64,6 +64,30 @@ public sealed class WallApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task DraftSavesAllSegmentsWithSharedAnchorsAndRejectsInvalidDrafts()
+    {
+        var rejected = await _client.PostAsJsonAsync("/api/walls/draft", new[]
+        {
+            Request("uncommitted draft wall", 10, 10, 11, 10), Request("collapsed", 10, 10, 10, 10)
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        var list = await _client.GetFromJsonAsync<JsonElement[]>("/api/walls/");
+        Assert.DoesNotContain(list!, item => item.GetProperty("name").GetString() == "uncommitted draft wall");
+
+        var saved = await _client.PostAsJsonAsync("/api/walls/draft", new[]
+        {
+            Request("base", 10, 10, 14, 10), Request("first side", 10, 10, 10, 13), Request("second side", 14, 10, 14, 13)
+        });
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        var walls = (await saved.Content.ReadFromJsonAsync<JsonElement[]>())!;
+        Assert.Equal(3, walls.Length);
+        Assert.Equal(walls[0].GetProperty("startAnchorId").GetGuid(), walls[1].GetProperty("startAnchorId").GetGuid());
+        Assert.Equal(walls[0].GetProperty("endAnchorId").GetGuid(), walls[2].GetProperty("startAnchorId").GetGuid());
+        var id = walls[1].GetProperty("id").GetGuid();
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/walls/{id}")).StatusCode);
+    }
+
+    [Fact]
     public async Task MissingResourcesReturn404AndInvalidRequestsReturn400()
     {
         var missing = Guid.NewGuid();
