@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { connectedEndpoints, moveWall, turnWall, tipWall } from '../src/model/wall.ts'
+import { connectedEndpoints, moveWall, nearestEndpoint, turnWall, tipWall } from '../src/model/wall.ts'
 import { createWall, createWallDraft, getWalls, updateWall, connectWalls, deleteWall } from '../src/api/walls.ts'
 
 const fixture = { id: 'a', name: 'A', start: { x: 0, z: 0 }, end: { x: 4, z: 0 }, length: 4, height: 2.5, thickness: 0.15, tiltDegrees: 0, startAnchorId: 's', endAnchorId: 'e' }
@@ -15,6 +15,11 @@ test('moving and turning a wall preserve its dimensions and do not mutate other 
   assert.equal(turned.length, 4)
   assert.deepEqual(fixture.start, { x: 0, z: 0 })
   assert.equal(tipWall(fixture, 200).tiltDegrees, 90)
+})
+
+test('endpoint snapping chooses the nearest endpoint within range', () => {
+  assert.equal(nearestEndpoint({ x: 3.94, z: 0 }, [{ x: 3.8, z: 0 }, fixture.end]), fixture.end)
+  assert.equal(nearestEndpoint({ x: 3.7, z: 0 }, [fixture.end]), null)
 })
 
 test('connection readout shows every shared anchor and ignores coincident unconnected walls', () => {

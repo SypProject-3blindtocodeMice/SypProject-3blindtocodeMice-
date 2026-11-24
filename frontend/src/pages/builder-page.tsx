@@ -1,7 +1,7 @@
-﻿import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { connectWalls, createWall, createWallDraft, deleteWall, getWalls, updateWall } from '../api/walls'
-import { connectedEndpoints, moveWall, tipWall, turnWall, wallEndpoints, type Point2, type Wall } from '../model/wall'
+import { connectedEndpoints, moveWall, snapCandidates, tipWall, turnWall, wallEndpoints, type Point2, type Wall } from '../model/wall'
 import { emptyDraft, placePoint, type WallDraft } from '../model/wall-draft'
 import { Scene } from '../viewer3d/Scene'
 import { draftWallDimensions } from '../viewer3d/WallDrawing'
@@ -40,6 +40,7 @@ export default function BuilderPage() {
   const [panelOpen, setPanelOpen] = useState(true)
   const selectedWall = walls.find((wall) => wall.id === selectedWallId) ?? null
   const drawing = draft !== null
+  const snapTargets = useMemo(() => snapCandidates(walls), [walls])
 
   useEffect(() => {
     const wall = walls.find((item) => item.id === selectedWallId)
@@ -116,7 +117,7 @@ export default function BuilderPage() {
   function addDraftPoint(point: Point2, shift: boolean) {
     if (savingDraftRef.current) return
     viewportRef.current?.focus({ preventScroll: true })
-    setDraft((current) => current && placePoint(current, point, shift || parallel))
+    setDraft((current) => current && placePoint(current, point, shift || parallel, snapTargets))
   }
 
   async function finishDrawing() {
@@ -216,7 +217,7 @@ export default function BuilderPage() {
     <section ref={viewportRef} tabIndex={-1} className={`viewport${drawing ? ' viewport-drawing' : ''}`} aria-label={`${view} building viewport`}>
       <Canvas camera={camera} onPointerMissed={() => !drawing && setSelectedWallId(null)}>
         <Scene view={view} walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => !drawing && setSelectedWallId(null)}
-          drawing={draft ? { draft, parallel: parallel || shiftHeld, saving: savingDraft, onPlace: addDraftPoint } : undefined} />
+          drawing={draft ? { draft, parallel: parallel || shiftHeld, saving: savingDraft, targets: snapTargets, onPlace: addDraftPoint } : undefined} />
       </Canvas>
     </section>
 
@@ -245,6 +246,7 @@ export default function BuilderPage() {
             <p className="wall-hint" role="status">{draft.tip ? `${draft.segments.length} draft segments. Click or tap to place the next point.` : 'Click or tap the grid to place the first point.'} Drag to navigate; scroll or pinch to zoom.</p>
             <button type="button" className="btn btn-block" aria-pressed={parallel || shiftHeld} disabled={!draft.base || savingDraft} onClick={() => setParallel((value) => !value)}>Parallel sides</button>
             <p className="wall-hint">Hold <kbd>Shift</kbd> or toggle Parallel sides to draw from both ends of the last wall.</p>
+            <p className="wall-hint">The cursor marker turns green when it snaps to an endpoint.</p>
             <div className="form-grid">
               <button type="button" className="btn btn-primary" disabled={!draft.segments.length || savingDraft} onClick={finishDrawing}>{savingDraft ? 'Saving…' : 'Finish (Enter)'}</button>
               <button type="button" className="btn" disabled={savingDraft} onClick={cancelDrawing}>Cancel (Esc)</button>

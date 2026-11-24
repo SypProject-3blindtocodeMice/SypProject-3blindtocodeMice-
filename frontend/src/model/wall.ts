@@ -15,6 +15,7 @@ export type Wall = {
 export type CreateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness'> & { tiltDegrees?: number }
 export type UpdateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness' | 'tiltDegrees'>
 
+export const endpointSnapDistance = 0.2 // metres; matches WallService
 export type WallEndpoint = 'start' | 'end'
 export const wallEndpoints = ['start', 'end'] as const
 
@@ -24,6 +25,24 @@ export function connectedEndpoints(wall: Wall, endpoint: WallEndpoint, walls: Wa
   const id = anchorId(wall, endpoint)
   return walls.filter((other) => other.id !== wall.id).flatMap((other) =>
     wallEndpoints.filter((side) => anchorId(other, side) === id).map((side) => ({ wall: other, endpoint: side })))
+}
+
+export function nearestEndpoint(point: Point2, candidates: readonly Point2[]): Point2 | null {
+  let closest: Point2 | null = null
+  let best = endpointSnapDistance
+  for (const candidate of candidates) {
+    const distance = Math.hypot(candidate.x - point.x, candidate.z - point.z)
+    if (distance <= endpointSnapDistance && (!closest || distance < best)) {
+      closest = candidate
+      best = distance
+    }
+  }
+  return closest
+}
+
+export function snapCandidates(walls: Wall[]): Point2[] {
+  const anchors = new Map(walls.flatMap((wall) => wallEndpoints.map((side) => [anchorId(wall, side), wall[side]] as const)))
+  return [...anchors].sort(([a], [b]) => a.localeCompare(b)).map(([, point]) => point)
 }
 
 export function wallFromEndpoints(wall: Wall, start: Point2, end: Point2): Wall {

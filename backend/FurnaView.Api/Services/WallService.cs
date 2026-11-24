@@ -11,6 +11,7 @@ public sealed class WallService(IWallRepository repository) : IWallService
     // A single lock makes connected-anchor moves atomic with validation and DTO snapshots.
     private readonly object _gate = new();
     private const double MinimumLength = 0.000001;
+    private const double SnapDistance = 0.2; // metres; keep the drawing preview in sync
 
     public IReadOnlyList<WallResponse> GetAll()
     {
@@ -27,41 +28,34 @@ public sealed class WallService(IWallRepository repository) : IWallService
         lock (_gate) return repository.Delete(id);
     }
 
-    public WallResponse Create(CreateWallRequest request)
-    {
-        Validate(request.Name, request.Start, request.End, request.Height, request.Thickness, request.TiltDegrees);
-        lock (_gate)
-        {
-            var wall = new Wall(Guid.NewGuid(), request.Name!.Trim(),
-                new Anchor(request.Start!.X, request.Start.Z), new Anchor(request.End!.X, request.End.Z),
-                request.Height, request.Thickness, request.TiltDegrees);
-            repository.Add(wall);
-            return Map(wall);
-        }
-    }
+    public WallResponse Create(CreateWallRequest request) => CreateDraft([request])[0];
 
     public IReadOnlyList<WallResponse> CreateDraft(IReadOnlyList<CreateWallRequest?> requests)
     {
         if (requests.Count == 0) throw new WallValidationException("A draft requires at least one wall.");
-        // Validate every segment before adding any, so a failed draft can be retried without duplicates.
-        var anchors = new Dictionary<FloorPoint, Anchor>();
-        Anchor GetAnchor(FloorPoint point)
-        {
-            if (!anchors.TryGetValue(point, out var anchor))
-                anchors.Add(point, anchor = new Anchor(point.X, point.Z));
-            return anchor;
-        }
-
-        var walls = requests.Select(request =>
-        {
-            if (request is null) throw new WallValidationException("Draft walls cannot be null.");
-            Validate(request.Name, request.Start, request.End, request.Height, request.Thickness, request.TiltDegrees);
-            return new Wall(Guid.NewGuid(), request.Name!.Trim(), GetAnchor(request.Start!), GetAnchor(request.End!),
-                request.Height, request.Thickness, request.TiltDegrees);
-        }).ToArray();
-
         lock (_gate)
         {
+            var existing = Anchors(repository.GetAll());
+            var anchors = new Dictionary<FloorPoint, Anchor>();
+            Anchor GetAnchor(FloorPoint point)
+            {
+                if (!anchors.TryGetValue(point, out var anchor))
+                    anchors.Add(point, anchor = Snap(point, existing) ?? new Anchor(point.X, point.Z));
+                return anchor;
+            }
+
+            // Validate the whole draft, including its snapped geometry, before storing any walls.
+            var walls = requests.Select(request =>
+            {
+                if (request is null) throw new WallValidationException("Draft walls cannot be null.");
+                Validate(request.Name, request.Start, request.End, request.Height, request.Thickness, request.TiltDegrees);
+                var start = GetAnchor(request.Start!);
+                var end = GetAnchor(request.End!);
+                if (!ValidLength(start.X, start.Z, end.X, end.Z))
+                    throw new WallValidationException("Both endpoints snap to the same location. Place one farther away.");
+                return new Wall(Guid.NewGuid(), request.Name!.Trim(), start, end,
+                    request.Height, request.Thickness, request.TiltDegrees);
+            }).ToArray();
             foreach (var wall in walls) repository.Add(wall);
             return walls.Select(Map).ToArray();
         }
@@ -74,20 +68,37 @@ public sealed class WallService(IWallRepository repository) : IWallService
         {
             var wall = repository.Get(id);
             if (wall is null) return null;
+            var oldStart = wall.Start;
+            var oldEnd = wall.End;
+            var walls = repository.GetAll();
+            var candidates = Anchors(walls).Where(a => a != oldStart && a != oldEnd).ToArray();
             var start = request.Start!;
             var end = request.End!;
-            if (wall.Start == wall.End && (start.X != end.X || start.Z != end.Z))
-                throw new WallValidationException("A wall cannot have both ends attached to the same anchor.");
+            var snappedStart = start != Point(oldStart) ? Snap(start, candidates) : null;
+            var snappedEnd = end != Point(oldEnd) ? Snap(end, candidates) : null;
+            FloorPoint Project(Anchor anchor) => anchor == oldStart ? (snappedStart is null ? start : Point(snappedStart))
+                : anchor == oldEnd ? (snappedEnd is null ? end : Point(snappedEnd)) : Point(anchor);
             // All walls sharing either anchor must remain nonzero length after this move.
-            foreach (var other in repository.GetAll())
+            foreach (var other in walls)
             {
-                var a = other.Start == wall.Start ? start : other.Start == wall.End ? end : new FloorPoint(other.Start.X, other.Start.Z);
-                var b = other.End == wall.Start ? start : other.End == wall.End ? end : new FloorPoint(other.End.X, other.End.Z);
+                var a = Project(other.Start);
+                var b = Project(other.End);
                 if (!ValidLength(a.X, a.Z, b.X, b.Z))
                     throw new WallValidationException("Moving this anchor would collapse a connected wall.");
             }
-            wall.Start.X = start.X; wall.Start.Z = start.Z;
-            wall.End.X = end.X; wall.End.Z = end.Z;
+            if (snappedStart is null) { oldStart.X = start.X; oldStart.Z = start.Z; }
+            if (snappedEnd is null) { oldEnd.X = end.X; oldEnd.Z = end.Z; }
+            Anchor Replace(Anchor anchor) => anchor == oldStart ? snappedStart ?? anchor
+                : anchor == oldEnd ? snappedEnd ?? anchor : anchor;
+            foreach (var other in walls)
+            {
+                var a = Replace(other.Start);
+                var b = Replace(other.End);
+                if (a == other.Start && b == other.End) continue;
+                other.Start = a;
+                other.End = b;
+                repository.Update(other);
+            }
             wall.Name = request.Name!.Trim();
             wall.Height = request.Height;
             wall.Thickness = request.Thickness;
@@ -132,6 +143,24 @@ public sealed class WallService(IWallRepository repository) : IWallService
     }
 
     private static bool Finite(params double[] numbers) => numbers.All(double.IsFinite);
+    private static FloorPoint Point(Anchor anchor) => new(anchor.X, anchor.Z);
+    private static Anchor[] Anchors(IEnumerable<Wall> walls) =>
+        walls.SelectMany(wall => new[] { wall.Start, wall.End }).Distinct().OrderBy(anchor => anchor.Id).ToArray();
+    private static Anchor? Snap(FloorPoint point, IEnumerable<Anchor> anchors)
+    {
+        Anchor? nearest = null;
+        var best = SnapDistance;
+        foreach (var anchor in anchors)
+        {
+            var distance = Distance(point.X, point.Z, anchor.X, anchor.Z);
+            if (distance <= SnapDistance && (nearest is null || distance < best))
+            {
+                nearest = anchor;
+                best = distance;
+            }
+        }
+        return nearest;
+    }
     private static bool ValidLength(double x1, double z1, double x2, double z2) =>
         double.IsFinite(Distance(x1, z1, x2, z2)) && Distance(x1, z1, x2, z2) >= MinimumLength;
     private static double Distance(double x1, double z1, double x2, double z2) =>
