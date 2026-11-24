@@ -15,6 +15,17 @@ export type Wall = {
 export type CreateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness'> & { tiltDegrees?: number }
 export type UpdateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness' | 'tiltDegrees'>
 
+export type WallEndpoint = 'start' | 'end'
+export const wallEndpoints = ['start', 'end'] as const
+
+const anchorId = (wall: Wall, endpoint: WallEndpoint) => endpoint === 'start' ? wall.startAnchorId : wall.endAnchorId
+
+export function connectedEndpoints(wall: Wall, endpoint: WallEndpoint, walls: Wall[]) {
+  const id = anchorId(wall, endpoint)
+  return walls.filter((other) => other.id !== wall.id).flatMap((other) =>
+    wallEndpoints.filter((side) => anchorId(other, side) === id).map((side) => ({ wall: other, endpoint: side })))
+}
+
 export function wallFromEndpoints(wall: Wall, start: Point2, end: Point2): Wall {
   return { ...wall, start, end, length: Math.hypot(end.x - start.x, end.z - start.z) }
 }

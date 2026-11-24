@@ -1,7 +1,7 @@
 ﻿import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { connectWalls, createWall, createWallDraft, deleteWall, getWalls, updateWall } from '../api/walls'
-import { moveWall, tipWall, turnWall, type Point2, type Wall } from '../model/wall'
+import { connectedEndpoints, moveWall, tipWall, turnWall, wallEndpoints, type Point2, type Wall } from '../model/wall'
 import { emptyDraft, placePoint, type WallDraft } from '../model/wall-draft'
 import { Scene } from '../viewer3d/Scene'
 import { draftWallDimensions } from '../viewer3d/WallDrawing'
@@ -281,8 +281,21 @@ export default function BuilderPage() {
             <button type="button" className="btn btn-danger btn-block" disabled={deleting} onClick={removeSelectedWall}>{deleting ? 'Deleting…' : 'Delete wall'}</button>
           </form>
 
-          {walls.length > 1 && <form onSubmit={connect} className="wall-form connect-form">
-            <h3>Connection</h3>
+           <section className="wall-form connect-form">
+             <h3>Current connections</h3>
+             <dl className="wall-connections">
+               {wallEndpoints.map((side) => {
+                 const links = connectedEndpoints(selectedWall, side, walls)
+                 return <div key={side}>
+                   <dt>{side === 'start' ? 'Start point' : 'End point'}</dt>
+                   <dd>{links.length ? links.map(({ wall, endpoint }) => `${wall.name} (${endpoint})`).join(', ') : 'Not connected'}</dd>
+                 </div>
+               })}
+             </dl>
+           </section>
+
+           {walls.length > 1 && <form onSubmit={connect} className="wall-form connect-form">
+             <h3>Connect manually</h3>
             <label className="field">From this wall<select className="select" value={connection.endpoint} onChange={(e) => setConnection({ ...connection, endpoint: e.target.value as 'start' | 'end' })}><option value="start">Start point</option><option value="end">End point</option></select></label>
             <label className="field">To wall<select className="select" required value={connection.targetWallId} onChange={(e) => setConnection({ ...connection, targetWallId: e.target.value })}><option value="">Choose wall…</option>{walls.filter((w) => w.id !== selectedWall.id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
             <label className="field">At its<select className="select" value={connection.targetEndpoint} onChange={(e) => setConnection({ ...connection, targetEndpoint: e.target.value as 'start' | 'end' })}><option value="start">Start point</option><option value="end">End point</option></select></label>

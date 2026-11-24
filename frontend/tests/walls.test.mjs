@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { moveWall, turnWall, tipWall } from '../src/model/wall.ts'
+import { connectedEndpoints, moveWall, turnWall, tipWall } from '../src/model/wall.ts'
 import { createWall, createWallDraft, getWalls, updateWall, connectWalls, deleteWall } from '../src/api/walls.ts'
 
 const fixture = { id: 'a', name: 'A', start: { x: 0, z: 0 }, end: { x: 4, z: 0 }, length: 4, height: 2.5, thickness: 0.15, tiltDegrees: 0, startAnchorId: 's', endAnchorId: 'e' }
@@ -15,6 +15,16 @@ test('moving and turning a wall preserve its dimensions and do not mutate other 
   assert.equal(turned.length, 4)
   assert.deepEqual(fixture.start, { x: 0, z: 0 })
   assert.equal(tipWall(fixture, 200).tiltDegrees, 90)
+})
+
+test('connection readout shows every shared anchor and ignores coincident unconnected walls', () => {
+  const b = { ...fixture, id: 'b', start: fixture.end, startAnchorId: 'e', endAnchorId: 'other' }
+  const c = { ...b, id: 'c', startAnchorId: 'another', endAnchorId: 'e' }
+  const coincident = { ...b, id: 'd', startAnchorId: 'unconnected' }
+  assert.deepEqual(connectedEndpoints(fixture, 'start', [fixture, b, c, coincident]), [])
+  assert.deepEqual(connectedEndpoints(fixture, 'end', [fixture, b, c, coincident]), [
+    { wall: b, endpoint: 'start' }, { wall: c, endpoint: 'end' },
+  ])
 })
 
 test('wall API uses DTOs and the expected routes and methods', async () => {
