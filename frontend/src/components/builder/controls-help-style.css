@@ -20,6 +20,7 @@
 }
 
 .controls-help:hover .help-button,
+.controls-help.open .help-button,
 .help-button:focus-visible {
   border-color: var(--color-accent);
   background: var(--color-accent-soft);
@@ -48,11 +49,20 @@
   transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
 }
 
-.controls-help:hover .help-popover,
-.controls-help:focus-within .help-popover {
+@media (hover: hover) {
+  .controls-help:hover .help-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+}
+
+.controls-help.open .help-popover {
   opacity: 1;
   visibility: visible;
   transform: translateX(0);
+  pointer-events: auto;
 }
 
 .help-popover h2 {
@@ -113,8 +123,32 @@
   }
 }
 
+.only-touch {
+  display: none !important;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .only-touch {
+    display: grid !important;
+  }
+
+  .only-pointer,
+  .only-keyboard {
+    display: none !important;
+  }
+}
+
 @media (max-width: 48rem) {
-  .controls-help {
-    display: none;
+  .help-popover {
+    top: auto;
+    right: -0.5rem;
+    bottom: calc(100% + 0.75rem);
+    left: auto;
+    width: min(18.5rem, calc(100vw - 2rem));
+    transform: translateY(0.25rem);
+  }
+
+  .controls-help.open .help-popover {
+    transform: translateY(0);
   }
 }

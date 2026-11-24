@@ -11,7 +11,7 @@ export default function Logo({ size = 'md' }: LogoProps) {
           <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" />
         </svg>
       </span>
-      FurnaView
+      <span className="logo-text">FurnaView</span>
     </span>
   )
 }

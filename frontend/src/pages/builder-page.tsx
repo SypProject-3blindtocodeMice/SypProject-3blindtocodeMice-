@@ -112,10 +112,10 @@ export default function BuilderPage() {
   }
 
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
-    <main className="viewport" aria-label="Interactive 3D viewport">
+    <section className="viewport" aria-label="Interactive 3D viewport">
       <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}><Scene walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} /></Canvas>
 
-    </main>
+    </section>
 
     <aside className="sidebar" aria-label="Wall editor">
       <div className="sidebar-head">
@@ -157,7 +157,7 @@ export default function BuilderPage() {
             <div><dt>Thickness</dt><dd>{selectedWall.thickness} m</dd></div>
             <div><dt>Tilt</dt><dd>{selectedWall.tiltDegrees}°</dd></div>
           </dl>
-
+          <p className="wall-hint">Use the arrow keys to move this wall, or hold <kbd>Shift</kbd> to turn and tilt it. Tap or hover <strong>?</strong> for all controls.</p>
           <form onSubmit={saveWall} className="wall-form">
             <h3>Edit geometry <span>(metres)</span></h3>
             <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="any" required value={edit[key]} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} /></label>)}</div>
