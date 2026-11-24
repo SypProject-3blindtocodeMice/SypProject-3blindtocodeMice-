@@ -12,6 +12,13 @@
   background: var(--color-scene);
 }
 
+.viewport-view-toggle {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1;
+}
+
 /* Side panel */
 .sidebar {
   position: absolute;
@@ -243,13 +250,25 @@
 
 /* Small screens: panel becomes a bottom sheet */
 @media (max-width: 48rem) {
+  .builder {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) fit-content(60%);
+  }
+
+  .viewport-view-toggle {
+    position: relative;
+    inset: auto;
+    grid-row: 1;
+    place-self: end;
+    margin: 1rem;
+  }
+
   .sidebar {
-    top: auto;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    position: relative;
+    inset: auto;
+    grid-row: 2;
     width: auto;
-    max-height: 60%;
+    min-height: 0;
     border-right: none;
     border-bottom: none;
     border-left: none;
