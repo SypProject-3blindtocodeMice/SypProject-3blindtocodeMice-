@@ -49,6 +49,7 @@ function ControlRow({ control, className }: { control: Control; className?: stri
 export default function ControlsHelp({ view }: { view: ViewMode }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  // Camera gestures vary by mode; wall keyboard shortcuts are shared.
   const activePointerControls = view === '2D'
     ? [
         { keys: ['Left-drag'], action: 'Pan the floor plan' },
