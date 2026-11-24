@@ -50,10 +50,16 @@ export default function ControlsHelp({ view }: { view: ViewMode }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const activePointerControls = view === '2D'
-    ? [{ keys: ['Left-drag'], action: 'Pan the floor plan' }]
+    ? [
+        { keys: ['Left-drag'], action: 'Pan the floor plan' },
+        { keys: ['Scroll'], action: 'Zoom in and out' },
+      ]
     : pointerControls
   const activeTouchControls = view === '2D'
-    ? [{ keys: ['1-finger drag'], action: 'Pan the floor plan' }]
+    ? [
+        { keys: ['1-finger drag'], action: 'Pan the floor plan' },
+        { keys: ['Pinch'], action: 'Zoom in and out' },
+      ]
     : touchControls
 
   useEffect(() => {

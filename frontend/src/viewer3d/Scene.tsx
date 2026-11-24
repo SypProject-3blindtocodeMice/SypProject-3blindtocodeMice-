@@ -1,6 +1,6 @@
 import { OrbitControls, OrthographicCamera } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState, type ComponentRef } from 'react'
 import { MOUSE, TOUCH, PerspectiveCamera, type OrthographicCamera as ThreeOrthographicCamera } from 'three'
 import type { Wall } from '../model/wall'
 import { CameraControls } from './CameraControls'
@@ -19,9 +19,15 @@ type SceneProps = {
 
 function SceneCameras({ view }: { view: ViewMode }) {
   const { width, height } = useThree((state) => state.size)
+  // Fit 24 metres on the shorter side without resetting user zoom on resize.
+  const metresPerPixel = 24 / Math.max(Math.min(width, height), 1)
+  const halfPlanWidth = Math.max(width, 1) * metresPerPixel / 2
+  const halfPlanHeight = Math.max(height, 1) * metresPerPixel / 2
   const get = useThree((state) => state.get)
   const [perspectiveCamera] = useState(() => get().camera)
   const [topDownCamera, setTopDownCamera] = useState<ThreeOrthographicCamera | null>(null)
+  const topDownControls = useRef<ComponentRef<typeof OrbitControls>>(null)
+  const perspectiveControls = useRef<ComponentRef<typeof OrbitControls>>(null)
 
   useLayoutEffect(() => {
     // Fiber resizes the active camera only. Keep 3D ready even when 2D is active.
@@ -31,26 +37,46 @@ function SceneCameras({ view }: { view: ViewMode }) {
   }, [perspectiveCamera, width, height])
 
   useLayoutEffect(() => {
-    // Choose the active camera explicitly; neither mode restores a captured camera.
+    const state = get()
     const activeCamera = view === '2D' ? topDownCamera : perspectiveCamera
-    if (activeCamera) get().set({ camera: activeCamera })
+    if (!activeCamera || state.camera === activeCamera) return
+
+    const source = view === '2D' ? perspectiveControls.current : topDownControls.current
+    const destination = view === '2D' ? topDownControls.current : perspectiveControls.current
+    if (source && destination) {
+      // X/Z are the floor axes. Move the camera and its target together to keep the same angle and zoom.
+      activeCamera.position.x += source.target.x - destination.target.x
+      activeCamera.position.z += source.target.z - destination.target.z
+      destination.target.x = source.target.x
+      destination.target.z = source.target.z
+      destination.update()
+    }
+
+    state.set({ camera: activeCamera })
   }, [get, perspectiveCamera, topDownCamera, view])
 
   return (
     <>
       <OrthographicCamera
         ref={setTopDownCamera}
+        manual
+        left={-halfPlanWidth}
+        right={halfPlanWidth}
+        top={halfPlanHeight}
+        bottom={-halfPlanHeight}
         position={[0, 100, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         up={[0, 0, -1]}
-        zoom={Math.max(Math.min(width, height), 1) / 24}
       />
       {topDownCamera && (
         <OrbitControls
+          ref={topDownControls}
           camera={topDownCamera}
           enabled={view === '2D'}
           enableRotate={false}
-          enableZoom={false}
+          enableZoom
+          minZoom={0.25}
+          maxZoom={8}
           screenSpacePanning
           mouseButtons={{ LEFT: MOUSE.PAN, RIGHT: MOUSE.PAN }}
           touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }}
@@ -58,7 +84,7 @@ function SceneCameras({ view }: { view: ViewMode }) {
       )}
       {perspectiveCamera instanceof PerspectiveCamera && (
         <>
-          <CameraControls camera={perspectiveCamera} enabled={view === '3D'} />
+          <CameraControls ref={perspectiveControls} camera={perspectiveCamera} enabled={view === '3D'} />
           {view === '3D' && <ViewCube camera={perspectiveCamera} />}
         </>
       )}
