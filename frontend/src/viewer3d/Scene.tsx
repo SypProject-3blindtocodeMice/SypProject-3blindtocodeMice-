@@ -2,6 +2,7 @@ import type { Wall } from '../model/wall'
 import { CameraControls } from './CameraControls'
 import { GroundGrid } from './GroundGrid'
 import { WallMesh } from './WallMesh'
+import { ViewCube } from './viewcube'
 
 type SceneProps = {
   walls: Wall[]
@@ -19,6 +20,7 @@ export function Scene({ walls, selectedWallId, onSelectWall, onDeselectWall }: S
       <GroundGrid onDeselect={onDeselectWall} />
       {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={onSelectWall} />)}
       <CameraControls />
+      <ViewCube />
     </>
   )
 }
