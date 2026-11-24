@@ -5,6 +5,7 @@ import { moveWall, tipWall, turnWall, type Wall } from '../model/wall'
 import { Scene } from '../viewer3d/Scene'
 import { camera } from '../viewer3d/sceneConfig'
 import ControlsHelp from '../components/builder/controls-help'
+import { ViewToggler } from '../components/view_toggler/view-toggler'
 import './builder-style.css'
 
 const fieldLabels = { startX: 'Start X', startZ: 'Start Z', endX: 'End X', endZ: 'End Z', height: 'Height', thickness: 'Thickness' } as const
@@ -114,8 +115,11 @@ export default function BuilderPage() {
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
     <section className="viewport" aria-label="Interactive 3D viewport">
       <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}><Scene walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} /></Canvas>
-
     </section>
+
+    <div className="viewport-view-toggle">
+      <ViewToggler />
+    </div>
 
     <aside className="sidebar" aria-label="Wall editor">
       <div className="sidebar-head">
