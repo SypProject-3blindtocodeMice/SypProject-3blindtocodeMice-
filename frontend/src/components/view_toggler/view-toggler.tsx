@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import type { ViewMode } from '../../viewer3d/sceneConfig'
 import './view-toggler-style.css'
 
-export function ViewToggler() {
-  const [view, setView] = useState<'2D' | '3D'>('2D')
+type ViewTogglerProps = {
+  view: ViewMode
+  onViewChange: (view: ViewMode) => void
+}
+
+export function ViewToggler({ view, onViewChange }: ViewTogglerProps) {
   const nextView = view === '2D' ? '3D' : '2D'
 
   return (
@@ -11,7 +15,7 @@ export function ViewToggler() {
       className="logo-icon view-toggler"
       type="button"
       aria-label={`${view} view. Switch to ${nextView}`}
-      onClick={() => setView(nextView)}
+      onClick={() => onViewChange(nextView)}
     >
       {view}
     </button>

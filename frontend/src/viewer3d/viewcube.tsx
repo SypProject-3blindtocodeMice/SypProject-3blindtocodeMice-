@@ -42,16 +42,12 @@ type PointerCaptureTarget = {
   releasePointerCapture: (pointerId: number) => void
 }
 
-export function ViewCube() {
+export function ViewCube({ camera }: { camera: THREE.PerspectiveCamera }) {
   const group = useRef<THREE.Group>(null)
   const manualRotation = useRef(new THREE.Quaternion())
   const drag = useRef<DragState | null>(null)
   const dragged = useRef(false)
-  const { camera, size, controls } = useThree((state) => ({
-    camera: state.camera,
-    size: state.size,
-    controls: state.controls as unknown as OrbitControlsTarget | undefined,
-  }))
+  const controls = useThree((state) => state.controls as OrbitControlsTarget | undefined)
 
   const faceMaterials = useMemo(
     () => boxFaceMaterials.map(({ color }) => new THREE.MeshStandardMaterial({ color, roughness: 0.65 })),
@@ -70,9 +66,8 @@ export function ViewCube() {
 
     // Keep the cube in the camera's upper-right corner while its independent
     // rotation lets the user inspect or choose a view without moving the camera.
-    const perspectiveCamera = camera as THREE.PerspectiveCamera
-    const halfHeight = CAMERA_DISTANCE * Math.tan(THREE.MathUtils.degToRad(perspectiveCamera.fov ?? 50) / 2)
-    const halfWidth = halfHeight * (perspectiveCamera.aspect || size.width / Math.max(size.height, 1))
+    const halfHeight = CAMERA_DISTANCE * Math.tan(THREE.MathUtils.degToRad(camera.getEffectiveFOV()) / 2)
+    const halfWidth = halfHeight * camera.aspect
     const localPosition = new THREE.Vector3(
       halfWidth - CUBE_SCALE * 0.8,
       halfHeight - CUBE_SCALE * 0.8,

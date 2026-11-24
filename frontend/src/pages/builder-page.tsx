@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { connectWalls, createWall, getWalls, updateWall } from '../api/walls'
 import { moveWall, tipWall, turnWall, type Wall } from '../model/wall'
 import { Scene } from '../viewer3d/Scene'
-import { camera } from '../viewer3d/sceneConfig'
+import { camera, type ViewMode } from '../viewer3d/sceneConfig'
 import ControlsHelp from '../components/builder/controls-help'
 import { ViewToggler } from '../components/view_toggler/view-toggler'
 import './builder-style.css'
@@ -17,6 +17,7 @@ const emptyForm = { name: '', startX: '0', startZ: '0', endX: '4', endZ: '0', he
 
 export default function BuilderPage() {
   const [walls, setWalls] = useState<Wall[]>([])
+  const [view, setView] = useState<ViewMode>('2D')
   const wallsRef = useRef(walls)
   wallsRef.current = walls
   const pendingRef = useRef<Wall | null>(null)
@@ -113,12 +114,14 @@ export default function BuilderPage() {
   }
 
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
-    <section className="viewport" aria-label="Interactive 3D viewport">
-      <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}><Scene walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} /></Canvas>
+    <section className="viewport" aria-label={`${view} building viewport`}>
+      <Canvas camera={camera} onPointerMissed={() => setSelectedWallId(null)}>
+        <Scene view={view} walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => setSelectedWallId(null)} />
+      </Canvas>
     </section>
 
     <div className="viewport-view-toggle">
-      <ViewToggler />
+      <ViewToggler view={view} onViewChange={setView} />
     </div>
 
     <aside className="sidebar" aria-label="Wall editor">
@@ -128,7 +131,7 @@ export default function BuilderPage() {
           <p>{walls.length === 0 ? 'Start by adding a wall' : `${walls.length} wall${walls.length === 1 ? '' : 's'} in this room`}</p>
         </div>
         <div className="sidebar-head-actions">
-          <ControlsHelp />
+          <ControlsHelp view={view} />
           <button type="button" className="icon-btn panel-toggle" aria-expanded={panelOpen} aria-label={panelOpen ? 'Collapse panel' : 'Expand panel'} onClick={() => setPanelOpen((value) => !value)}>{panelOpen ? '▾' : '▴'}</button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 ﻿import { useEffect, useRef, useState } from 'react'
+import type { ViewMode } from '../../viewer3d/sceneConfig'
 import './controls-help-style.css'
 
 type Control = { keys: string[]; action: string }
@@ -45,9 +46,15 @@ function ControlRow({ control, className }: { control: Control; className?: stri
   )
 }
 
-export default function ControlsHelp() {
+export default function ControlsHelp({ view }: { view: ViewMode }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const activePointerControls = view === '2D'
+    ? [{ keys: ['Left-drag'], action: 'Pan the floor plan' }]
+    : pointerControls
+  const activeTouchControls = view === '2D'
+    ? [{ keys: ['1-finger drag'], action: 'Pan the floor plan' }]
+    : touchControls
 
   useEffect(() => {
     if (!open) return
@@ -81,8 +88,8 @@ export default function ControlsHelp() {
       <div id="controls-help-popover" className="help-popover" role="dialog" aria-label="Controls">
         <h2>Controls</h2>
         <ul>
-          {pointerControls.map((control) => <ControlRow key={control.action} control={control} className="only-pointer" />)}
-          {touchControls.map((control) => <ControlRow key={`touch-${control.action}`} control={control} className="only-touch" />)}
+          {activePointerControls.map((control) => <ControlRow key={control.action} control={control} className="only-pointer" />)}
+          {activeTouchControls.map((control) => <ControlRow key={`touch-${control.action}`} control={control} className="only-touch" />)}
           {keyboardControls.map((control) => <ControlRow key={control.action} control={control} className="only-keyboard" />)}
         </ul>
         <p>Select a wall first to move, turn or tilt it. On touch screens, use the Edit geometry form.</p>
