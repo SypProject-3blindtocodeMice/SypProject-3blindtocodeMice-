@@ -53,6 +53,17 @@ public sealed class WallApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task DeletingWallRemovesItFromReadsAndLists()
+    {
+        var id = await Create("delete me", 0, 0, 4, 0);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync($"/api/walls/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync($"/api/walls/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.DeleteAsync($"/api/walls/{id}")).StatusCode);
+        var list = await _client.GetFromJsonAsync<JsonElement[]>("/api/walls/");
+        Assert.DoesNotContain(list!, item => item.GetProperty("id").GetGuid() == id);
+    }
+
+    [Fact]
     public async Task MissingResourcesReturn404AndInvalidRequestsReturn400()
     {
         var missing = Guid.NewGuid();

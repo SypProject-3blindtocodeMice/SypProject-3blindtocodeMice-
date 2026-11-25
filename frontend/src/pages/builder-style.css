@@ -117,6 +117,15 @@
   gap: 0.75rem;
 }
 
+.btn-danger {
+  color: var(--color-error);
+}
+
+.btn-danger:hover:not(:disabled) {
+  color: var(--color-error);
+  background: var(--color-error-soft);
+}
+
 .connect-form {
   padding-top: 0.75rem;
   border-top: 1px dashed var(--color-border);
