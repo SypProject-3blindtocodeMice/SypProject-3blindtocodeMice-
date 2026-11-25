@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { moveWall, turnWall, tipWall } from '../src/model/wall.ts'
-import { createWall, getWalls, updateWall, connectWalls } from '../src/api/walls.ts'
+import { createWall, getWalls, updateWall, connectWalls, deleteWall } from '../src/api/walls.ts'
 
 const fixture = { id: 'a', name: 'A', start: { x: 0, z: 0 }, end: { x: 4, z: 0 }, length: 4, height: 2.5, thickness: 0.15, tiltDegrees: 0, startAnchorId: 's', endAnchorId: 'e' }
 
@@ -22,6 +22,7 @@ test('wall API uses DTOs and the expected routes and methods', async () => {
   const calls = []
   globalThis.fetch = async (url, init) => {
     calls.push({ url, method: init?.method ?? 'GET', body: init?.body && JSON.parse(init.body) })
+    if (init?.method === 'DELETE') return new Response(null, { status: 204 })
     return { ok: true, json: async () => url.endsWith('/connections') || init?.method === undefined ? [fixture] : fixture }
   }
   try {
@@ -29,8 +30,9 @@ test('wall API uses DTOs and the expected routes and methods', async () => {
     assert.equal((await createWall(fixture)).id, 'a')
     await updateWall('a', fixture)
     await connectWalls('a', { endpoint: 'end', targetWallId: 'b', targetEndpoint: 'start' })
+    await deleteWall('a')
     assert.deepEqual(calls.map(({ url, method }) => [url, method]), [
-      ['/api/walls', 'GET'], ['/api/walls', 'POST'], ['/api/walls/a', 'PUT'], ['/api/walls/a/connections', 'POST']
+      ['/api/walls', 'GET'], ['/api/walls', 'POST'], ['/api/walls/a', 'PUT'], ['/api/walls/a/connections', 'POST'], ['/api/walls/a', 'DELETE']
     ])
     assert.equal(calls[2].body.end.x, 4)
   } finally { globalThis.fetch = original }

@@ -50,6 +50,19 @@ public sealed class WallServiceTests
     }
 
     [Fact]
+    public void DeletingConnectedWallPreservesItsNeighbourAndAnchor()
+    {
+        var service = new WallService(new InMemoryWallRepository());
+        var first = service.Create(Valid);
+        var second = service.Create(new("second", new(4, 0), new(4, 3), 3, .2));
+        service.Connect(first.Id, new("end", second.Id, "start"));
+
+        Assert.True(service.Delete(first.Id));
+        Assert.Null(service.Get(first.Id));
+        Assert.Equal(second, Assert.Single(service.GetAll()));
+    }
+
+    [Fact]
     public void MoveThatCollapsesConnectedWallIsRejectedAtomically()
     {
         var service = new WallService(new InMemoryWallRepository());

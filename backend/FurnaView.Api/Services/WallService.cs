@@ -22,6 +22,11 @@ public sealed class WallService(IWallRepository repository) : IWallService
         lock (_gate) return repository.Get(id) is { } wall ? Map(wall) : null;
     }
 
+    public bool Delete(Guid id)
+    {
+        lock (_gate) return repository.Delete(id);
+    }
+
     public WallResponse Create(CreateWallRequest request)
     {
         Validate(request.Name, request.Start, request.End, request.Height, request.Thickness, request.TiltDegrees);

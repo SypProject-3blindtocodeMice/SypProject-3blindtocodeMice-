@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { connectWalls, createWall, getWalls, updateWall } from '../api/walls'
+import { connectWalls, createWall, deleteWall, getWalls, updateWall } from '../api/walls'
 import { moveWall, tipWall, turnWall, type Wall } from '../model/wall'
 import { Scene } from '../viewer3d/Scene'
 import { camera, type ViewMode } from '../viewer3d/sceneConfig'
@@ -23,6 +23,7 @@ export default function BuilderPage() {
   const pendingRef = useRef<Wall | null>(null)
   const [selectedWallId, setSelectedWallId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [deleting, setDeleting] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [edit, setEdit] = useState({ startX: '', startZ: '', endX: '', endZ: '', height: '', thickness: '' })
@@ -54,7 +55,7 @@ export default function BuilderPage() {
   }, [reload])
 
   useEffect(() => {
-    if (!selectedWallId) return
+    if (!selectedWallId || deleting) return
     const activeWallId = selectedWallId
     function handleKeyDown(event: KeyboardEvent) {
       if (event.altKey || event.ctrlKey || event.metaKey) return
@@ -85,7 +86,7 @@ export default function BuilderPage() {
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
     return () => { window.removeEventListener('keydown', handleKeyDown); window.removeEventListener('keyup', handleKeyUp) }
-  }, [selectedWallId, commit])
+  }, [selectedWallId, commit, deleting])
 
   async function addWall(event: React.FormEvent) {
     event.preventDefault()
@@ -108,9 +109,27 @@ export default function BuilderPage() {
 
   async function saveWall(event: React.FormEvent) {
     event.preventDefault()
-    if (!selectedWall) return
+    if (!selectedWall || deleting) return
     const next = { ...selectedWall, start: { x: Number(edit.startX), z: Number(edit.startZ) }, end: { x: Number(edit.endX), z: Number(edit.endZ) }, height: Number(edit.height), thickness: Number(edit.thickness) }
     await commit(selectedWall.id, next)
+  }
+
+  async function removeSelectedWall() {
+    if (!selectedWall || deleting || pendingRef.current) return
+    const { id, name } = selectedWall
+    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return
+    setDeleting(true)
+    try {
+      await deleteWall(id)
+      setWalls((current) => current.filter((wall) => wall.id !== id))
+      setSelectedWallId((current) => current === id ? null : current)
+      setConnection((current) => current.targetWallId === id ? { ...current, targetWallId: '' } : current)
+      setError('')
+    } catch (e) {
+      setError(`Could not delete wall: ${String(e)}`)
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
@@ -168,7 +187,8 @@ export default function BuilderPage() {
           <form onSubmit={saveWall} className="wall-form">
             <h3>Edit geometry <span>(metres)</span></h3>
             <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="any" required value={edit[key]} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} /></label>)}</div>
-            <button type="submit" className="btn btn-primary btn-block">Save wall</button>
+            <button type="submit" className="btn btn-primary btn-block" disabled={deleting}>Save wall</button>
+            <button type="button" className="btn btn-danger btn-block" disabled={deleting} onClick={removeSelectedWall}>{deleting ? 'Deleting…' : 'Delete wall'}</button>
           </form>
 
           {walls.length > 1 && <form onSubmit={connect} className="wall-form connect-form">

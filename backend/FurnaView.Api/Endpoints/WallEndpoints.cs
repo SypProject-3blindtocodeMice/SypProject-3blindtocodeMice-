@@ -20,6 +20,8 @@ public static class WallEndpoints
             });
             group.MapPut("/{id:guid}", (Guid id, UpdateWallRequest request, IWallService service) =>
                 service.Update(id, request) is { } wall ? Results.Ok(wall) : Results.NotFound());
+            group.MapDelete("/{id:guid}", (Guid id, IWallService service) =>
+                service.Delete(id) ? Results.NoContent() : Results.NotFound());
             group.MapPost("/{id:guid}/connections", (Guid id, ConnectWallRequest request, IWallService service) =>
                 service.Connect(id, request) is { } walls ? Results.Ok(walls) : Results.NotFound());
             return app;

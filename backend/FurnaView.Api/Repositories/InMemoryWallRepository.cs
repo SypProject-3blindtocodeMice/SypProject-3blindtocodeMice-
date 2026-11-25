@@ -8,6 +8,7 @@ public sealed class InMemoryWallRepository : IWallRepository
     private readonly ConcurrentDictionary<Guid, Wall> _walls = new();
     public IReadOnlyList<Wall> GetAll() => _walls.Values.ToArray();
     public Wall? Get(Guid id) => _walls.GetValueOrDefault(id);
+    public bool Delete(Guid id) => _walls.TryRemove(id, out _);
     public void Add(Wall wall)
     {
         if (!_walls.TryAdd(wall.Id, wall)) throw new InvalidOperationException("Wall ID already exists.");

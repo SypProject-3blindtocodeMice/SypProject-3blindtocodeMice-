@@ -8,5 +8,6 @@ public interface IWallService
     WallResponse? Get(Guid id);
     WallResponse Create(CreateWallRequest request);
     WallResponse? Update(Guid id, UpdateWallRequest request);
+    bool Delete(Guid id);
     IReadOnlyList<WallResponse>? Connect(Guid id, ConnectWallRequest request);
 }
