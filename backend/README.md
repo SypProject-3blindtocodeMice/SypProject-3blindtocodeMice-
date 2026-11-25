@@ -15,6 +15,9 @@ Vite proxies `/api` to the local backend on port 5080.
 
 `GET /api/walls`, `GET /api/walls/{id}`, `POST /api/walls`, and
 `PUT /api/walls/{id}` exchange JSON DTOs, not the internal `Wall` class.
+`POST /api/walls/draft` accepts an array of create requests and validates the
+whole draft before storing any walls. See the [Wall Pencil guide](../docs/WALL_PENCIL.md#implementation-and-api)
+for the batch contract and automatic snapping rules.
 `POST /api/walls/{id}/connections` accepts
 `{ "endpoint": "start", "targetWallId": "<guid>", "targetEndpoint": "end" }`
 and returns all updated walls. A create request looks like:
