@@ -1,17 +1,21 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { adjustDraftDimensions, emptyDraft, placePoint, previewSegments } from '../src/model/wall-draft.ts'
+import { dimensionArrows, emptyDraft, placePoint, previewSegments, stepDraftDimension } from '../src/model/wall-draft.ts'
 import { defaultWallDimensions, parseWallDimensions } from '../src/model/wall.ts'
 
 const point = (x, z) => ({ x, z })
 
-test('pointer movement adjusts height and thickness independently without allowing zero', () => {
-  const start = { height: 2.5, thickness: 0.15 }
-  assert.deepEqual(adjustDraftDimensions(start, 25, -40), { height: 2.9, thickness: 0.2 })
-  assert.deepEqual(adjustDraftDimensions(start, -25, 40), { height: 2.1, thickness: 0.1 })
-  assert.deepEqual(adjustDraftDimensions(start, 0, -10), { height: 2.6, thickness: 0.15 })
-  assert.deepEqual(adjustDraftDimensions(start, -1000, 1000), { height: 0.01, thickness: 0.01 })
-  assert.deepEqual(adjustDraftDimensions({ height: 2.56789, thickness: 0.1234567 }, 0, 0), { height: 2.56789, thickness: 0.1234567 })
+test('arrow steps start at one centimetre and grow as the key stays held', () => {
+  assert.equal(dimensionArrows.ArrowUp[0], 'height')
+  assert.equal(dimensionArrows.ArrowRight[0], 'thickness')
+  assert.equal(stepDraftDimension(2.5, 'ArrowUp', 0), 2.51)
+  assert.equal(stepDraftDimension(2.5, 'ArrowDown', 0), 2.49)
+  assert.equal(stepDraftDimension(2.5, 'ArrowUp', 750), 2.52)
+  assert.equal(stepDraftDimension(2.5, 'ArrowUp', 1500), 2.55)
+  assert.equal(stepDraftDimension(2.5, 'ArrowUp', 2500), 2.6)
+  assert.equal(stepDraftDimension(0.15, 'ArrowLeft', 0), 0.14)
+  assert.equal(stepDraftDimension(0.15, 'ArrowRight', 2500), 0.25)
+  assert.equal(stepDraftDimension(0.03, 'ArrowLeft', 2500), 0.01)
 })
 
 test('clicks chain segments and moving the cursor does not pin them', () => {

@@ -5,12 +5,13 @@ export type DraftSegment = Segment & WallDimensions
 export type WallDraft = { tip: Point2 | null; segments: DraftSegment[]; base: Segment | null }
 export const emptyDraft: WallDraft = { tip: null, segments: [], base: null }
 
-export function adjustDraftDimensions(start: WallDimensions, dx: number, dy: number): WallDimensions {
-  // Height changes 1 cm per pixel; thickness changes 1 cm per 5 pixels.
-  function adjust(value: number, steps: number) {
-    return steps === 0 ? value : Math.max(Math.min(value, 0.01), Number((value + steps / 100).toFixed(6)))
-  }
-  return { height: adjust(start.height, -Math.round(dy)), thickness: adjust(start.thickness, Math.round(dx / 5)) }
+export const dimensionArrows = { ArrowUp: ['height', 1], ArrowDown: ['height', -1], ArrowRight: ['thickness', 1], ArrowLeft: ['thickness', -1] } as const
+export type DimensionArrow = keyof typeof dimensionArrows
+
+export function stepDraftDimension(value: number, arrow: DimensionArrow, heldMs: number): number {
+  const centimetres = heldMs >= 2500 ? 10 : heldMs >= 1500 ? 5 : heldMs >= 750 ? 2 : 1
+  const next = value + dimensionArrows[arrow][1] * centimetres / 100
+  return Math.max(Math.min(value, 0.01), Number(next.toFixed(8)))
 }
 
 export function previewSegments(draft: WallDraft, point: Point2, parallel: boolean, targets: readonly Point2[] = []): Segment[] {

@@ -20,7 +20,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  cursor: move;
+  cursor: default;
   touch-action: none;
   overscroll-behavior: contain;
   user-select: none;
