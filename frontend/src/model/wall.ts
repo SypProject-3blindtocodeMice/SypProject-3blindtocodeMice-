@@ -34,6 +34,10 @@ export const endpointSnapDistance = 0.2 // metres; matches WallService
 export type WallEndpoint = 'start' | 'end'
 export const wallEndpoints = ['start', 'end'] as const
 
+export function wallAtEndpoint(point: Point2, walls: readonly Wall[]): Wall | undefined {
+  return walls.find((wall) => wallEndpoints.some((end) => wall[end].x === point.x && wall[end].z === point.z))
+}
+
 const anchorId = (wall: Wall, endpoint: WallEndpoint) => endpoint === 'start' ? wall.startAnchorId : wall.endAnchorId
 
 export function connectedEndpoints(wall: Wall, endpoint: WallEndpoint, walls: Wall[]) {

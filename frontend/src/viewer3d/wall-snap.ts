@@ -2,7 +2,7 @@ import { Box3, Matrix4, Ray, Vector3 } from 'three'
 import { endpointSnapDistance } from '../model/wall.ts'
 import { wallPose, type WallShape } from './wall-pose.ts'
 
-export function createWallSnapPicker(walls: readonly WallShape[]) {
+export function createWallSnapPicker<T extends WallShape>(walls: readonly T[]) {
   const targets = walls.map((wall) => {
     const { centerX, centerZ, baseHeight, yaw, tilt } = wallPose(wall)
     const world = new Matrix4().makeRotationY(yaw).multiply(new Matrix4().makeRotationX(tilt))
@@ -38,6 +38,6 @@ export function createWallSnapPicker(walls: readonly WallShape[]) {
     const start = hitX <= 0
     const point = start ? closest.wall.start : closest.wall.end
     worldHit.set(start ? -closest.halfLength : closest.halfLength, hitY, 0).applyMatrix4(closest.world)
-    return { point, marker: worldHit.toArray() }
+    return { point, marker: worldHit.toArray(), wall: closest.wall }
   }
 }

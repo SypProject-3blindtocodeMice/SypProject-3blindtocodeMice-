@@ -18,6 +18,7 @@ test('aiming high or low at either wall end snaps to its floor anchor', () => {
     for (const height of [0.25, 2.45]) {
       const snap = pick(aimAt([x, 3, 5], [x, height, 0.1]), 100)
       assert.deepEqual(snap.point, anchor)
+      assert.equal(snap.wall, wall)
       assert.ok(Math.abs(snap.marker[1] - height) < 1e-9)
     }
   }

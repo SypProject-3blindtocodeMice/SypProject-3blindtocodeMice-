@@ -126,10 +126,14 @@ export default function BuilderPage() {
     setError('')
   }
 
-  function addDraftPoint(point: Point2, shift: boolean) {
-    if (savingDraftRef.current || adjusting || !draftDimensions) return
+  function addDraftPoint(point: Point2, shift: boolean, source?: Wall) {
+    if (!draft || savingDraftRef.current || adjusting || !draftDimensions) return
     viewportRef.current?.focus({ preventScroll: true })
-    setDraft((current) => current && placePoint(current, point, shift || parallel, snapTargets, draftDimensions))
+    const dimensions = source ? { height: source.height, thickness: source.thickness } : draftDimensions
+    const next = placePoint(draft, point, shift || parallel, snapTargets, dimensions)
+    if (next === draft) return
+    if (source) setDraftDimensionFields({ height: String(dimensions.height), thickness: String(dimensions.thickness) })
+    setDraft(next)
   }
 
   async function finishDrawing() {
@@ -338,7 +342,7 @@ export default function BuilderPage() {
             <p className="wall-hint">{dimensionMode ? 'Drag in the view, then tap Adjust dimensions again to resume drawing.' : <>Hold <kbd>D</kbd> and move the pointer, or toggle Adjust dimensions and drag in the view.</>}</p>
             <button type="button" className="btn btn-block" aria-pressed={parallel || shiftHeld} disabled={!draft.base || savingDraft} onClick={() => setParallel((value) => !value)}>Parallel sides</button>
             <p className="wall-hint">Hold <kbd>Shift</kbd> or toggle Parallel sides to draw from both ends of the last wall.</p>
-            <p className="wall-hint">The cursor marker turns green when it snaps to an endpoint.</p>
+             <p className="wall-hint">Green means snapped. Snapping to an existing wall copies its height and thickness.</p>
             <div className="form-grid">
               <button type="button" className="btn btn-primary" disabled={!draft.segments.length || savingDraft} onClick={finishDrawing}>{savingDraft ? 'Saving…' : 'Finish (Enter)'}</button>
               <button type="button" className="btn" disabled={savingDraft} onClick={cancelDrawing}>Cancel (Esc)</button>

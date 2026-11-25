@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Plane, Raycaster, Vector2, Vector3 } from 'three'
-import { nearestEndpoint, type Point2, type Wall, type WallDimensions } from '../model/wall'
+import { nearestEndpoint, wallAtEndpoint, type Point2, type Wall, type WallDimensions } from '../model/wall'
 import { previewSegments, type WallDraft } from '../model/wall-draft'
 import { WallMesh } from './WallMesh'
 import { viewCubePointerDowns } from './viewcube'
@@ -17,10 +17,10 @@ type DrawingProps = {
   targets: readonly Point2[]
   view: ViewMode
   walls: readonly Wall[]
-  onPlace: (point: Point2, shift: boolean) => void
+  onPlace: (point: Point2, shift: boolean, source?: Wall) => void
 }
 
-type DrawingPoint = Point2 & { snapped: boolean; marker?: [number, number, number] }
+type DrawingPoint = Point2 & { snapped: boolean; marker?: [number, number, number]; source?: Wall }
 
 export function WallDrawing({ draft, dimensions, adjusting, parallel, saving, targets, view, walls, onPlace }: DrawingProps) {
   const canvas = useThree((state) => state.gl.domElement)
@@ -42,12 +42,13 @@ export function WallDrawing({ draft, dimensions, adjusting, parallel, saving, ta
     // The visual snap follows the wall end at the cursor's height. Draft geometry
     // still receives only the original floor-level X/Z anchor.
     const wallSnap = pickWallSnap?.(ray.ray, camera.far)
-    if (wallSnap) return { ...wallSnap.point, snapped: true, marker: wallSnap.marker }
+    if (wallSnap) return { ...wallSnap.point, snapped: true, marker: wallSnap.marker, source: wallSnap.wall }
     if (!ray.ray.intersectPlane(floor, hit) || hit.distanceTo(ray.ray.origin) > camera.far) return null
     const raw = { x: hit.x, z: hit.z }
     const grid = { x: Math.round(hit.x * 4) / 4, z: Math.round(hit.z * 4) / 4 }
-    const snapped = nearestEndpoint(raw, targets) ?? nearestEndpoint(grid, targets) ?? nearestEndpoint(raw, draftTargets)
-    return { ...(snapped ?? grid), snapped: snapped !== null }
+    const existing = nearestEndpoint(raw, targets) ?? nearestEndpoint(grid, targets)
+    const snapped = existing ?? nearestEndpoint(raw, draftTargets)
+    return { ...(snapped ?? grid), snapped: snapped !== null, source: existing ? wallAtEndpoint(existing, walls) : undefined }
   }
 
   function pointerPosition(event: PointerEvent) {
@@ -61,7 +62,7 @@ export function WallDrawing({ draft, dimensions, adjusting, parallel, saving, ta
     const ndc = pointerPosition(event)
     const point = ndc && project(ndc)
     if (!adjusting && !saving && dimensions && point && document.elementFromPoint(event.clientX, event.clientY) === canvas)
-      onPlace({ x: point.x, z: point.z }, event.shiftKey)
+      onPlace({ x: point.x, z: point.z }, event.shiftKey, point.source)
   })
 
   useEffect(() => {
@@ -123,13 +124,14 @@ export function WallDrawing({ draft, dimensions, adjusting, parallel, saving, ta
     if (adjusting) return
     const point = !saving && dimensions && cursor.current ? project(cursor.current) : null
     const last = lastHover.current
-    if (point?.x === last?.x && point?.z === last?.z && point?.snapped === last?.snapped
+    if (point?.x === last?.x && point?.z === last?.z && point?.snapped === last?.snapped && point?.source === last?.source
       && point?.marker?.[0] === last?.marker?.[0] && point?.marker?.[1] === last?.marker?.[1] && point?.marker?.[2] === last?.marker?.[2]) return
     lastHover.current = point
     setHover(point)
   })
 
   const preview = hover ? previewSegments(draft, hover, parallel, targets) : []
+  const previewDimensions = !adjusting && hover?.source ? hover.source : dimensions
   // Give adjustment a sample when there isn't a full cursor preview yet.
   const sampleStart = draft.tip ?? hover
   if (adjusting && !preview.length && sampleStart) {
@@ -137,7 +139,7 @@ export function WallDrawing({ draft, dimensions, adjusting, parallel, saving, ta
   }
   return <>
     {draft.segments.map((segment, index) => <WallMesh key={index} draft="pinned" wall={{ ...segment, tiltDegrees: 0, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
-    {dimensions && preview.map((segment, index) => <WallMesh key={index} draft="preview" wall={{ ...segment, ...dimensions, tiltDegrees: 0, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
+    {previewDimensions && preview.map((segment, index) => <WallMesh key={index} draft="preview" wall={{ ...segment, height: previewDimensions.height, thickness: previewDimensions.thickness, tiltDegrees: 0, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
     {[draft.tip, hover].map((point, index) => point && <mesh key={index} position={(index === 1 && hover?.marker) || [point.x, 0.03, point.z]}>
       <sphereGeometry args={[0.085, 12, 8]} />
       <meshBasicMaterial color={index === 0 ? '#ffd180' : hover?.snapped ? '#a3ffac' : '#84dcff'} depthTest={false} />
