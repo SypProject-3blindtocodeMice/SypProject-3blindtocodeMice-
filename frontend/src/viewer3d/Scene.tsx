@@ -16,7 +16,7 @@ type SceneProps = {
   selectedWallId: string | null
   onSelectWall: (id: string) => void
   onDeselectWall: () => void
-  drawing?: React.ComponentProps<typeof WallDrawing>
+  drawing?: Omit<React.ComponentProps<typeof WallDrawing>, 'view' | 'walls'>
 }
 
 function SceneCameras({ view }: { view: ViewMode }) {
@@ -109,7 +109,7 @@ export function Scene({ view, walls, selectedWallId, onSelectWall, onDeselectWal
       <GroundGrid onDeselect={onDeselectWall} />
       {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={drawing ? undefined : onSelectWall} />)}
       <SceneCameras view={view} />
-      {drawing && <WallDrawing {...drawing} />}
+      {drawing && <WallDrawing {...drawing} view={view} walls={walls} />}
     </>
   )
 }
