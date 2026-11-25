@@ -1,8 +1,17 @@
-import { nearestEndpoint, type Point2 } from './wall.ts'
+import { defaultWallDimensions, nearestEndpoint, type Point2, type WallDimensions } from './wall.ts'
 
 export type Segment = { start: Point2; end: Point2 }
-export type WallDraft = { tip: Point2 | null; segments: Segment[]; base: Segment | null }
+export type DraftSegment = Segment & WallDimensions
+export type WallDraft = { tip: Point2 | null; segments: DraftSegment[]; base: Segment | null }
 export const emptyDraft: WallDraft = { tip: null, segments: [], base: null }
+
+export function adjustDraftDimensions(start: WallDimensions, dx: number, dy: number): WallDimensions {
+  // Height changes 1 cm per pixel; thickness changes 1 cm per 5 pixels.
+  function adjust(value: number, steps: number) {
+    return steps === 0 ? value : Math.max(Math.min(value, 0.01), Number((value + steps / 100).toFixed(6)))
+  }
+  return { height: adjust(start.height, -Math.round(dy)), thickness: adjust(start.thickness, Math.round(dx / 5)) }
+}
 
 export function previewSegments(draft: WallDraft, point: Point2, parallel: boolean, targets: readonly Point2[] = []): Segment[] {
   if (!draft.tip) return []
@@ -24,14 +33,14 @@ export function previewSegments(draft: WallDraft, point: Point2, parallel: boole
     ? [] : [{ start: draft.tip, end: point }]
 }
 
-export function placePoint(draft: WallDraft, point: Point2, parallel: boolean, targets: readonly Point2[] = []): WallDraft {
+export function placePoint(draft: WallDraft, point: Point2, parallel: boolean, targets: readonly Point2[] = [], dimensions = defaultWallDimensions): WallDraft {
   if (!draft.tip) return { ...draft, tip: point }
   const segments = previewSegments(draft, point, parallel, targets)
   if (segments.length === 0) return draft
   const last = segments[segments.length - 1]
   return {
     tip: last.end,
-    segments: [...draft.segments, ...segments],
+    segments: [...draft.segments, ...segments.map((segment) => ({ ...segment, ...dimensions }))],
     base: last,
   }
 }

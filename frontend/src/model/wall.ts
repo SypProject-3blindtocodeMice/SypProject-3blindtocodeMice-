@@ -15,6 +15,21 @@ export type Wall = {
 export type CreateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness'> & { tiltDegrees?: number }
 export type UpdateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness' | 'tiltDegrees'>
 
+export type WallDimensions = Pick<Wall, 'height' | 'thickness'>
+export const defaultWallDimensions: Readonly<WallDimensions> = { height: 2.5, thickness: 0.15 }
+
+// Match WallService: both dimensions must be finite and strictly positive.
+export function parseWallDimension(value: string): number | null {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : null
+}
+
+export function parseWallDimensions(fields: { height: string; thickness: string }): WallDimensions | null {
+  const height = parseWallDimension(fields.height)
+  const thickness = parseWallDimension(fields.thickness)
+  return height !== null && thickness !== null ? { height, thickness } : null
+}
+
 export const endpointSnapDistance = 0.2 // metres; matches WallService
 export type WallEndpoint = 'start' | 'end'
 export const wallEndpoints = ['start', 'end'] as const

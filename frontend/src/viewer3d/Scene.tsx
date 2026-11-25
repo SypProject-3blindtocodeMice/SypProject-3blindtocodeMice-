@@ -19,7 +19,7 @@ type SceneProps = {
   drawing?: Omit<React.ComponentProps<typeof WallDrawing>, 'view' | 'walls'>
 }
 
-function SceneCameras({ view }: { view: ViewMode }) {
+function SceneCameras({ view, locked }: { view: ViewMode; locked: boolean }) {
   const { width, height } = useThree((state) => state.size)
   // Set the unzoomed view to 24 m on the shorter side and give both axes the
   // same metres per pixel. Resizing changes these bounds, not camera.zoom.
@@ -80,7 +80,7 @@ function SceneCameras({ view }: { view: ViewMode }) {
         <OrbitControls
           ref={topDownControls}
           camera={topDownCamera}
-          enabled={view === '2D'}
+          enabled={view === '2D' && !locked}
           enableRotate={false}
           enableZoom
           minZoom={0.25}
@@ -92,7 +92,7 @@ function SceneCameras({ view }: { view: ViewMode }) {
       )}
       {perspectiveCamera instanceof PerspectiveCamera && (
         <>
-          <CameraControls ref={perspectiveControls} camera={perspectiveCamera} enabled={view === '3D'} />
+          <CameraControls ref={perspectiveControls} camera={perspectiveCamera} enabled={view === '3D' && !locked} />
           {view === '3D' && <ViewCube camera={perspectiveCamera} />}
         </>
       )}
@@ -108,7 +108,7 @@ export function Scene({ view, walls, selectedWallId, onSelectWall, onDeselectWal
       <directionalLight position={[8, 12, 6]} intensity={1.5} />
       <GroundGrid onDeselect={onDeselectWall} />
       {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={drawing ? undefined : onSelectWall} />)}
-      <SceneCameras view={view} />
+      <SceneCameras view={view} locked={drawing?.adjusting ?? false} />
       {drawing && <WallDrawing {...drawing} view={view} walls={walls} />}
     </>
   )

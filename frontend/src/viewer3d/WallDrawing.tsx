@@ -1,17 +1,17 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Plane, Raycaster, Vector2, Vector3 } from 'three'
-import { nearestEndpoint, type Point2, type Wall } from '../model/wall'
+import { nearestEndpoint, type Point2, type Wall, type WallDimensions } from '../model/wall'
 import { previewSegments, type WallDraft } from '../model/wall-draft'
 import { WallMesh } from './WallMesh'
 import { viewCubePointerDowns } from './viewcube'
 import type { ViewMode } from './sceneConfig'
 import { createWallSnapPicker } from './wall-snap'
 
-export const draftWallDimensions = { height: 2.5, thickness: 0.15, tiltDegrees: 0 }
-
 type DrawingProps = {
   draft: WallDraft
+  dimensions: WallDimensions | null
+  adjusting: boolean
   parallel: boolean
   saving: boolean
   targets: readonly Point2[]
@@ -22,7 +22,7 @@ type DrawingProps = {
 
 type DrawingPoint = Point2 & { snapped: boolean; marker?: [number, number, number] }
 
-export function WallDrawing({ draft, parallel, saving, targets, view, walls, onPlace }: DrawingProps) {
+export function WallDrawing({ draft, dimensions, adjusting, parallel, saving, targets, view, walls, onPlace }: DrawingProps) {
   const canvas = useThree((state) => state.gl.domElement)
   const get = useThree((state) => state.get)
   const [hover, setHover] = useState<DrawingPoint | null>(null)
@@ -60,7 +60,7 @@ export function WallDrawing({ draft, parallel, saving, targets, view, walls, onP
   const place = useEffectEvent((event: PointerEvent) => {
     const ndc = pointerPosition(event)
     const point = ndc && project(ndc)
-    if (!saving && point && document.elementFromPoint(event.clientX, event.clientY) === canvas)
+    if (!adjusting && !saving && dimensions && point && document.elementFromPoint(event.clientX, event.clientY) === canvas)
       onPlace({ x: point.x, z: point.z }, event.shiftKey)
   })
 
@@ -115,8 +115,13 @@ export function WallDrawing({ draft, parallel, saving, targets, view, walls, onP
     }
   }, [canvas])
 
+  useLayoutEffect(() => {
+    if (adjusting) gesture.current = null
+  }, [adjusting])
+
   useFrame(() => {
-    const point = !saving && cursor.current ? project(cursor.current) : null
+    if (adjusting) return
+    const point = !saving && dimensions && cursor.current ? project(cursor.current) : null
     const last = lastHover.current
     if (point?.x === last?.x && point?.z === last?.z && point?.snapped === last?.snapped
       && point?.marker?.[0] === last?.marker?.[0] && point?.marker?.[1] === last?.marker?.[1] && point?.marker?.[2] === last?.marker?.[2]) return
@@ -125,9 +130,14 @@ export function WallDrawing({ draft, parallel, saving, targets, view, walls, onP
   })
 
   const preview = hover ? previewSegments(draft, hover, parallel, targets) : []
+  // Give adjustment a sample when there isn't a full cursor preview yet.
+  const sampleStart = draft.tip ?? hover
+  if (adjusting && !preview.length && sampleStart) {
+    preview.push({ start: sampleStart, end: { x: sampleStart.x + 1, z: sampleStart.z } })
+  }
   return <>
-    {draft.segments.map((segment, index) => <WallMesh key={index} draft="pinned" wall={{ ...segment, ...draftWallDimensions, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
-    {preview.map((segment, index) => <WallMesh key={index} draft="preview" wall={{ ...segment, ...draftWallDimensions, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
+    {draft.segments.map((segment, index) => <WallMesh key={index} draft="pinned" wall={{ ...segment, tiltDegrees: 0, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
+    {dimensions && preview.map((segment, index) => <WallMesh key={index} draft="preview" wall={{ ...segment, ...dimensions, tiltDegrees: 0, length: Math.hypot(segment.end.x - segment.start.x, segment.end.z - segment.start.z) }} />)}
     {[draft.tip, hover].map((point, index) => point && <mesh key={index} position={(index === 1 && hover?.marker) || [point.x, 0.03, point.z]}>
       <sphereGeometry args={[0.085, 12, 8]} />
       <meshBasicMaterial color={index === 0 ? '#ffd180' : hover?.snapped ? '#a3ffac' : '#84dcff'} depthTest={false} />

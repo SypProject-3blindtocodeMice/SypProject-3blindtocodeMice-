@@ -1,21 +1,25 @@
-﻿import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { connectWalls, createWall, createWallDraft, deleteWall, getWalls, updateWall } from '../api/walls'
-import { connectedEndpoints, moveWall, snapCandidates, tipWall, turnWall, wallEndpoints, type Point2, type Wall } from '../model/wall'
-import { emptyDraft, placePoint, type WallDraft } from '../model/wall-draft'
+import { connectedEndpoints, defaultWallDimensions, moveWall, parseWallDimension, parseWallDimensions, snapCandidates, tipWall, turnWall, wallEndpoints, type Point2, type Wall, type WallDimensions } from '../model/wall'
+import { adjustDraftDimensions, emptyDraft, placePoint, type WallDraft } from '../model/wall-draft'
 import { Scene } from '../viewer3d/Scene'
-import { draftWallDimensions } from '../viewer3d/WallDrawing'
 import { camera, type ViewMode } from '../viewer3d/sceneConfig'
 import ControlsHelp from '../components/builder/controls-help'
 import { ViewToggler } from '../components/view_toggler/view-toggler'
 import './builder-style.css'
 
 const fieldLabels = { startX: 'Start X', startZ: 'Start Z', endX: 'End X', endZ: 'End Z', height: 'Height', thickness: 'Thickness' } as const
-const fieldKeys = ['startX', 'startZ', 'endX', 'endZ', 'height', 'thickness'] as const
+const dimensionKeys = ['height', 'thickness'] as const
+const fieldKeys = ['startX', 'startZ', 'endX', 'endZ', ...dimensionKeys] as const
 
 const moveStep = 0.25
 const rotationStep = 1
-const emptyForm = { name: '', startX: '0', startZ: '0', endX: '4', endZ: '0', height: '2.5', thickness: '0.15' }
+const defaultDimensionFields = { height: String(defaultWallDimensions.height), thickness: String(defaultWallDimensions.thickness) }
+const emptyForm = { name: '', startX: '0', startZ: '0', endX: '4', endZ: '0', ...defaultDimensionFields }
+const dimensionError = 'Height and thickness must be greater than zero.'
+type ScreenPoint = { x: number; y: number }
+const screenPoint = (event: ReactPointerEvent) => ({ x: event.clientX, y: event.clientY })
 
 export default function BuilderPage() {
   const [walls, setWalls] = useState<Wall[]>([])
@@ -27,6 +31,11 @@ export default function BuilderPage() {
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [draft, setDraft] = useState<WallDraft | null>(null)
+  const [draftDimensionFields, setDraftDimensionFields] = useState(defaultDimensionFields)
+  const [dimensionKeyHeld, setDimensionKeyHeld] = useState(false)
+  const [dimensionMode, setDimensionMode] = useState(false)
+  const lastPointer = useRef<ScreenPoint | null>(null)
+  const dimensionDrag = useRef<{ pointerId: number; origin: ScreenPoint; start: WallDimensions; captured: boolean } | null>(null)
   const [shiftHeld, setShiftHeld] = useState(false)
   const [parallel, setParallel] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
@@ -40,6 +49,8 @@ export default function BuilderPage() {
   const [panelOpen, setPanelOpen] = useState(true)
   const selectedWall = walls.find((wall) => wall.id === selectedWallId) ?? null
   const drawing = draft !== null
+  const draftDimensions = parseWallDimensions(draftDimensionFields)
+  const adjusting = drawing && !savingDraft && (dimensionKeyHeld || dimensionMode)
   const snapTargets = useMemo(() => snapCandidates(walls), [walls])
 
   useEffect(() => {
@@ -109,24 +120,26 @@ export default function BuilderPage() {
   function cancelDrawing() {
     if (savingDraftRef.current) return
     setDraft(null)
+    stopDimensionAdjustment()
     setShiftHeld(false)
     setParallel(false)
     setError('')
   }
 
   function addDraftPoint(point: Point2, shift: boolean) {
-    if (savingDraftRef.current) return
+    if (savingDraftRef.current || adjusting || !draftDimensions) return
     viewportRef.current?.focus({ preventScroll: true })
-    setDraft((current) => current && placePoint(current, point, shift || parallel, snapTargets))
+    setDraft((current) => current && placePoint(current, point, shift || parallel, snapTargets, draftDimensions))
   }
 
   async function finishDrawing() {
     if (!draft?.segments.length || savingDraftRef.current) return
     savingDraftRef.current = true
+    stopDimensionAdjustment()
     setSavingDraft(true)
     try {
       const saved = await createWallDraft(draft.segments.map((segment, index) => ({
-        ...segment, ...draftWallDimensions, name: `Wall ${walls.length + index + 1}`,
+        ...segment, name: `Wall ${walls.length + index + 1}`,
       })))
       setWalls((current) => [...current, ...saved])
       setDraft(null)
@@ -141,13 +154,53 @@ export default function BuilderPage() {
     }
   }
 
-  const finishFromKeyboard = useEffectEvent(finishDrawing)
+  function stopDimensionAdjustment() {
+    setDimensionKeyHeld(false)
+    setDimensionMode(false)
+    dimensionDrag.current = null
+    lastPointer.current = null
+  }
+
+  function startDimensionDrag(event: ReactPointerEvent<HTMLDivElement>, origin: ScreenPoint, captured: boolean) {
+    dimensionDrag.current = {
+      pointerId: event.pointerId, origin, captured,
+      start: {
+        height: parseWallDimension(draftDimensionFields.height) ?? defaultWallDimensions.height,
+        thickness: parseWallDimension(draftDimensionFields.thickness) ?? defaultWallDimensions.thickness,
+      },
+    }
+    if (captured) event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  function moveDimensions(event: ReactPointerEvent<HTMLDivElement>) {
+    const position = screenPoint(event)
+    if (!dimensionDrag.current && dimensionKeyHeld && event.pointerType !== 'touch') {
+      startDimensionDrag(event, lastPointer.current ?? position, false)
+    }
+    const drag = dimensionDrag.current
+    if (drag?.pointerId !== event.pointerId) return
+    const next = adjustDraftDimensions(drag.start, position.x - drag.origin.x, position.y - drag.origin.y)
+    setDraftDimensionFields((fields) =>
+      Number(fields.height) === next.height && Number(fields.thickness) === next.thickness
+        ? fields : { height: String(next.height), thickness: String(next.thickness) })
+  }
+
+  const finishFromKeyboard = useEffectEvent(() => { if (!adjusting) void finishDrawing() })
   const cancelFromKeyboard = useEffectEvent(cancelDrawing)
+  const holdDimensionKey = useEffectEvent(() => {
+    if (savingDraftRef.current) return
+    setDimensionKeyHeld(true)
+  })
   useEffect(() => {
     if (!drawing) return
     function keyDown(event: KeyboardEvent) {
       if (event.key === 'Shift') setShiftHeld(true)
-      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return
+      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.defaultPrevented) return
+      const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable]')
+      if (event.code === 'KeyD' && !typing) {
+        event.preventDefault()
+        holdDimensionKey()
+      }
       if (event.key === 'Escape' && !event.defaultPrevented) {
         event.preventDefault()
         cancelFromKeyboard()
@@ -157,8 +210,15 @@ export default function BuilderPage() {
         void finishFromKeyboard()
       }
     }
-    function keyUp(event: KeyboardEvent) { if (event.key === 'Shift') setShiftHeld(false) }
-    function blur() { setShiftHeld(false) }
+    function keyUp(event: KeyboardEvent) {
+      if (event.key === 'Shift') setShiftHeld(false)
+      if (event.code === 'KeyD') {
+        setDimensionKeyHeld(false)
+        if (!dimensionDrag.current?.captured) dimensionDrag.current = null
+        lastPointer.current = null
+      }
+    }
+    function blur() { setShiftHeld(false); stopDimensionAdjustment() }
     window.addEventListener('keydown', keyDown)
     window.addEventListener('keyup', keyUp)
     window.addEventListener('blur', blur)
@@ -171,8 +231,10 @@ export default function BuilderPage() {
 
   async function addWall(event: React.FormEvent) {
     event.preventDefault()
+    const dimensions = parseWallDimensions(form)
+    if (!dimensions) { setError(dimensionError); return }
     try {
-      const wall = await createWall({ name: form.name, start: { x: Number(form.startX), z: Number(form.startZ) }, end: { x: Number(form.endX), z: Number(form.endZ) }, height: Number(form.height), thickness: Number(form.thickness) })
+      const wall = await createWall({ name: form.name, start: { x: Number(form.startX), z: Number(form.startZ) }, end: { x: Number(form.endX), z: Number(form.endZ) }, ...dimensions })
       await reload()
       setSelectedWallId(wall.id)
       setForm(emptyForm)
@@ -191,7 +253,9 @@ export default function BuilderPage() {
   async function saveWall(event: React.FormEvent) {
     event.preventDefault()
     if (!selectedWall || deleting) return
-    const next = { ...selectedWall, start: { x: Number(edit.startX), z: Number(edit.startZ) }, end: { x: Number(edit.endX), z: Number(edit.endZ) }, height: Number(edit.height), thickness: Number(edit.thickness) }
+    const dimensions = parseWallDimensions(edit)
+    if (!dimensions) { setError(dimensionError); return }
+    const next = { ...selectedWall, start: { x: Number(edit.startX), z: Number(edit.startZ) }, end: { x: Number(edit.endX), z: Number(edit.endZ) }, ...dimensions }
     await commit(selectedWall.id, next)
   }
 
@@ -214,11 +278,32 @@ export default function BuilderPage() {
   }
 
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
-    <section ref={viewportRef} tabIndex={-1} className={`viewport${drawing ? ' viewport-drawing' : ''}`} aria-label={`${view} building viewport`}>
+    <section ref={viewportRef} tabIndex={-1} className={`viewport${drawing ? ' viewport-drawing' : ''}`} aria-label={`${view} building viewport`}
+      onPointerMove={(event) => { if (!adjusting && event.pointerType !== 'touch') lastPointer.current = screenPoint(event) }}
+      onPointerLeave={() => { lastPointer.current = null }}>
       <Canvas camera={camera} onPointerMissed={() => !drawing && setSelectedWallId(null)}>
         <Scene view={view} walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => !drawing && setSelectedWallId(null)}
-          drawing={draft ? { draft, parallel: parallel || shiftHeld, saving: savingDraft, targets: snapTargets, onPlace: addDraftPoint } : undefined} />
+          drawing={draft ? { draft, dimensions: draftDimensions, adjusting, parallel: parallel || shiftHeld, saving: savingDraft, targets: snapTargets, onPlace: addDraftPoint } : undefined} />
       </Canvas>
+      {adjusting && <div className="dimension-adjust-overlay"
+        onPointerDown={(event) => {
+          if (event.button !== 0 || !event.isPrimary || (dimensionKeyHeld && event.pointerType !== 'touch')) return
+          startDimensionDrag(event, screenPoint(event), true)
+        }}
+        onPointerMove={moveDimensions}
+        onLostPointerCapture={(event) => {
+          if (dimensionDrag.current?.pointerId === event.pointerId) dimensionDrag.current = null
+        }}
+        onPointerLeave={() => {
+          if (!dimensionDrag.current?.captured) dimensionDrag.current = null
+          lastPointer.current = null
+        }}
+        onContextMenu={(event) => event.preventDefault()}>
+        <div className="dimension-adjust-readout">
+          <strong>Height {draftDimensions ? `${draftDimensions.height} m` : '—'} · Thickness {draftDimensions ? `${draftDimensions.thickness} m` : '—'}</strong>
+          <span>{dimensionKeyHeld ? 'Move' : 'Drag'} ↑↓ for height · ←→ for thickness</span>
+        </div>
+      </div>}
     </section>
 
     <div className="viewport-view-toggle">
@@ -244,6 +329,13 @@ export default function BuilderPage() {
           <button type="button" className="btn btn-primary btn-block" aria-pressed={drawing} disabled={savingDraft} onClick={drawing ? cancelDrawing : startDrawing}>Draw wall</button>
           {draft ? <div className="wall-form">
             <p className="wall-hint" role="status">{draft.tip ? `${draft.segments.length} draft segments. Click or tap to place the next point.` : 'Click or tap the grid to place the first point.'} Drag to navigate; scroll or pinch to zoom.</p>
+            <div className="form-grid">{dimensionKeys.map((key) => <label key={key} className="field">{fieldLabels[key]} (m)<input className="input" type="number" step="any" required disabled={savingDraft} value={draftDimensionFields[key]} aria-invalid={parseWallDimension(draftDimensionFields[key]) === null} aria-describedby="pencil-dimensions-hint" onChange={(e) => setDraftDimensionFields({ ...draftDimensionFields, [key]: e.target.value })} /></label>)}</div>
+            <p className="wall-hint" id="pencil-dimensions-hint">{draftDimensions ? 'Applies to the next wall. Placed walls keep their dimensions.' : `${dimensionError} Fix the values to keep drawing.`}</p>
+            <button type="button" className="btn btn-block" aria-pressed={dimensionMode} disabled={savingDraft} onClick={() => {
+              dimensionDrag.current = null
+              setDimensionMode((value) => !value)
+            }}>Adjust dimensions</button>
+            <p className="wall-hint">{dimensionMode ? 'Drag in the view, then tap Adjust dimensions again to resume drawing.' : <>Hold <kbd>D</kbd> and move the pointer, or toggle Adjust dimensions and drag in the view.</>}</p>
             <button type="button" className="btn btn-block" aria-pressed={parallel || shiftHeld} disabled={!draft.base || savingDraft} onClick={() => setParallel((value) => !value)}>Parallel sides</button>
             <p className="wall-hint">Hold <kbd>Shift</kbd> or toggle Parallel sides to draw from both ends of the last wall.</p>
             <p className="wall-hint">The cursor marker turns green when it snaps to an endpoint.</p>
@@ -255,7 +347,7 @@ export default function BuilderPage() {
           {showAdd && <form onSubmit={addWall} className="wall-form">
             <h2>New wall <span>(metres)</span></h2>
             <label className="field">Name<input className="input" required placeholder="Living room north" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-            <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="0.1" required value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></label>)}</div>
+            <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="any" required value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></label>)}</div>
             <button type="submit" className="btn btn-primary btn-block">Add wall</button>
           </form>}
         </section>

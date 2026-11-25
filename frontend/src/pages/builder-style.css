@@ -16,6 +16,31 @@
   cursor: crosshair;
 }
 
+.dimension-adjust-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: move;
+  touch-action: none;
+  overscroll-behavior: contain;
+  user-select: none;
+}
+
+.dimension-adjust-readout {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-panel);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
 .builder .btn[aria-pressed="true"] {
   outline: 2px solid currentColor;
   outline-offset: -4px;
