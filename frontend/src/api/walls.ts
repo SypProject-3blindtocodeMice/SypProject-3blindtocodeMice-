@@ -12,6 +12,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 
 export const getWalls = () => request<Wall[]>('/api/walls')
 export const createWall = (body: CreateWallRequest) => request<Wall>('/api/walls', { method: 'POST', body: JSON.stringify(body) })
+export const createWallDraft = (body: CreateWallRequest[]) => request<Wall[]>('/api/walls/draft', { method: 'POST', body: JSON.stringify(body) })
 export const updateWall = (id: string, body: UpdateWallRequest) => request<Wall>(`/api/walls/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(body) })
 export async function deleteWall(id: string): Promise<void> {
   await fetchWallResponse(`/api/walls/${encodeURIComponent(id)}`, { method: 'DELETE' })

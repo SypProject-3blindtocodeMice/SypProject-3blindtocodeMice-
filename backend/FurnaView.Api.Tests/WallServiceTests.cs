@@ -50,6 +50,47 @@ public sealed class WallServiceTests
     }
 
     [Fact]
+    public void NewWallsAndDraftsSnapToNearbyEndpointsButNotToWallInteriors()
+    {
+        var service = new WallService(new InMemoryWallRepository());
+        var existing = service.Create(Valid);
+        var added = service.Create(new("near", new(4.1, .1), new(4, 3), 3, .2));
+        Assert.Equal(existing.End, added.Start);
+        Assert.Equal(existing.EndAnchorId, added.StartAnchorId);
+
+        var draft = service.CreateDraft([new("draft", new(.1, 0), new(2, .05), 3, .2)]);
+        Assert.Equal(existing.StartAnchorId, draft[0].StartAnchorId);
+        Assert.Equal(new FloorPoint(2, .05), draft[0].End);
+        var outside = service.Create(new("outside", new(-.25, 0), new(-2, 0), 3, .2));
+        Assert.NotEqual(existing.StartAnchorId, outside.StartAnchorId);
+    }
+
+    [Fact]
+    public void MovingNearAnEndpointJoinsTheExistingJunctionWithoutMovingTheTarget()
+    {
+        var service = new WallService(new InMemoryWallRepository());
+        var first = service.Create(Valid);
+        var neighbour = service.Create(new("neighbour", new(4, 0), new(4, 3), 3, .2));
+        var target = service.Create(new("target", new(5, 0), new(7, 0), 3, .2));
+        var moved = service.Update(first.Id, new("first", new(0, 0), new(4.9, .1), 3, .2))!;
+        Assert.Equal(target.StartAnchorId, moved.EndAnchorId);
+        Assert.Equal(target.StartAnchorId, service.Get(neighbour.Id)!.StartAnchorId);
+        Assert.Equal(target, service.Get(target.Id));
+    }
+
+    [Fact]
+    public void SnappingThatWouldCollapseAWallLeavesTheModelUnchanged()
+    {
+        var service = new WallService(new InMemoryWallRepository());
+        var first = service.Create(Valid);
+        var neighbour = service.Create(new("neighbour", new(4, 0), new(4, 3), 3, .2));
+        Assert.Throws<WallValidationException>(() => service.Update(first.Id,
+            new("first", new(0, 0), new(4.1, 3), 3, .2)));
+        Assert.Equal(first, service.Get(first.Id));
+        Assert.Equal(neighbour, service.Get(neighbour.Id));
+    }
+
+    [Fact]
     public void DeletingConnectedWallPreservesItsNeighbourAndAnchor()
     {
         var service = new WallService(new InMemoryWallRepository());

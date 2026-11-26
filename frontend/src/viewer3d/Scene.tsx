@@ -7,6 +7,7 @@ import { CameraControls } from './CameraControls'
 import { GroundGrid } from './GroundGrid'
 import type { ViewMode } from './sceneConfig'
 import { WallMesh } from './WallMesh'
+import { WallDrawing } from './WallDrawing'
 import { ViewCube } from './viewcube'
 
 type SceneProps = {
@@ -15,9 +16,10 @@ type SceneProps = {
   selectedWallId: string | null
   onSelectWall: (id: string) => void
   onDeselectWall: () => void
+  drawing?: Omit<React.ComponentProps<typeof WallDrawing>, 'view' | 'walls'>
 }
 
-function SceneCameras({ view }: { view: ViewMode }) {
+function SceneCameras({ view, locked }: { view: ViewMode; locked: boolean }) {
   const { width, height } = useThree((state) => state.size)
   // Set the unzoomed view to 24 m on the shorter side and give both axes the
   // same metres per pixel. Resizing changes these bounds, not camera.zoom.
@@ -78,7 +80,7 @@ function SceneCameras({ view }: { view: ViewMode }) {
         <OrbitControls
           ref={topDownControls}
           camera={topDownCamera}
-          enabled={view === '2D'}
+          enabled={view === '2D' && !locked}
           enableRotate={false}
           enableZoom
           minZoom={0.25}
@@ -90,7 +92,7 @@ function SceneCameras({ view }: { view: ViewMode }) {
       )}
       {perspectiveCamera instanceof PerspectiveCamera && (
         <>
-          <CameraControls ref={perspectiveControls} camera={perspectiveCamera} enabled={view === '3D'} />
+          <CameraControls ref={perspectiveControls} camera={perspectiveCamera} enabled={view === '3D' && !locked} />
           {view === '3D' && <ViewCube camera={perspectiveCamera} />}
         </>
       )}
@@ -98,15 +100,16 @@ function SceneCameras({ view }: { view: ViewMode }) {
   )
 }
 
-export function Scene({ view, walls, selectedWallId, onSelectWall, onDeselectWall }: SceneProps) {
+export function Scene({ view, walls, selectedWallId, onSelectWall, onDeselectWall, drawing }: SceneProps) {
   return (
     <>
       <color attach="background" args={['#202830']} />
       <ambientLight intensity={1} />
       <directionalLight position={[8, 12, 6]} intensity={1.5} />
       <GroundGrid onDeselect={onDeselectWall} />
-      {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={onSelectWall} />)}
-      <SceneCameras view={view} />
+      {walls.map((wall) => <WallMesh key={wall.id} wall={wall} selected={selectedWallId === wall.id} onSelect={drawing ? undefined : onSelectWall} />)}
+      <SceneCameras view={view} locked={drawing?.adjusting ?? false} />
+      {drawing && <WallDrawing {...drawing} view={view} walls={walls} />}
     </>
   )
 }

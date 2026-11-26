@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite, then open the builder. Add walls using **+ Add wall**; an empty server starts with an empty grid.
+Open the local URL printed by Vite, then open the builder. Use **Draw wall** for visual drawing or **+ Add wall by coordinates** for numeric entry. An empty server starts with an empty grid.
 
 ## Builder controls
 
@@ -28,6 +28,10 @@ The builder opens in **2D**. The blue button in the bottom-right corner shows th
 **2D** looks straight down without perspective distortion. You can pan and zoom, but you can't rotate or tilt the camera. **3D** also shows the ViewCube in the upper-right: drag it to rotate it independently until you release, or click a face to snap the camera to that view.
 
 For example, pan to a wall in **2D** and switch to **3D** to inspect its height. The view stays centered on the same spot on the floor plan, but each mode remembers its own zoom. Switching doesn't change the walls or clear your selection.
+
+### Draw walls
+
+Click or tap to start a wall, then place points to pin segments. Use **Shift** or **Parallel sides** for a perpendicular pair. Hold **D** and use the arrow keys to adjust height and thickness, or enter exact values in the sidebar. Press **Enter** to save or **Esc** to discard. See the [Wall Pencil guide](../docs/WALL_PENCIL.md) for snapping behavior, the full controls and troubleshooting checks.
 
 ### Select and edit walls
 

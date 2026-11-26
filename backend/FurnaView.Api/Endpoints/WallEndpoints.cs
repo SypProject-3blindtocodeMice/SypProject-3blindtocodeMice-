@@ -18,6 +18,8 @@ public static class WallEndpoints
                 var wall = service.Create(request);
                 return Results.Created($"/api/walls/{wall.Id}", wall);
             });
+            group.MapPost("/draft", (CreateWallRequest?[] requests, IWallService service) =>
+                Results.Ok(service.CreateDraft(requests)));
             group.MapPut("/{id:guid}", (Guid id, UpdateWallRequest request, IWallService service) =>
                 service.Update(id, request) is { } wall ? Results.Ok(wall) : Results.NotFound());
             group.MapDelete("/{id:guid}", (Guid id, IWallService service) =>

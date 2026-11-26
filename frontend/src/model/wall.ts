@@ -15,6 +15,55 @@ export type Wall = {
 export type CreateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness'> & { tiltDegrees?: number }
 export type UpdateWallRequest = Pick<Wall, 'name' | 'start' | 'end' | 'height' | 'thickness' | 'tiltDegrees'>
 
+export type WallDimensions = Pick<Wall, 'height' | 'thickness'>
+export const defaultWallDimensions: Readonly<WallDimensions> = { height: 2.5, thickness: 0.15 }
+
+// Match WallService: both dimensions must be finite and strictly positive.
+export function parseWallDimension(value: string): number | null {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : null
+}
+
+export function parseWallDimensions(fields: { height: string; thickness: string }): WallDimensions | null {
+  const height = parseWallDimension(fields.height)
+  const thickness = parseWallDimension(fields.thickness)
+  return height !== null && thickness !== null ? { height, thickness } : null
+}
+
+export const endpointSnapDistance = 0.2 // metres; matches WallService
+export type WallEndpoint = 'start' | 'end'
+export const wallEndpoints = ['start', 'end'] as const
+
+export function wallAtEndpoint(point: Point2, walls: readonly Wall[]): Wall | undefined {
+  return walls.find((wall) => wallEndpoints.some((end) => wall[end].x === point.x && wall[end].z === point.z))
+}
+
+const anchorId = (wall: Wall, endpoint: WallEndpoint) => endpoint === 'start' ? wall.startAnchorId : wall.endAnchorId
+
+export function connectedEndpoints(wall: Wall, endpoint: WallEndpoint, walls: Wall[]) {
+  const id = anchorId(wall, endpoint)
+  return walls.filter((other) => other.id !== wall.id).flatMap((other) =>
+    wallEndpoints.filter((side) => anchorId(other, side) === id).map((side) => ({ wall: other, endpoint: side })))
+}
+
+export function nearestEndpoint(point: Point2, candidates: readonly Point2[]): Point2 | null {
+  let closest: Point2 | null = null
+  let best = endpointSnapDistance
+  for (const candidate of candidates) {
+    const distance = Math.hypot(candidate.x - point.x, candidate.z - point.z)
+    if (distance <= endpointSnapDistance && (!closest || distance < best)) {
+      closest = candidate
+      best = distance
+    }
+  }
+  return closest
+}
+
+export function snapCandidates(walls: Wall[]): Point2[] {
+  const anchors = new Map(walls.flatMap((wall) => wallEndpoints.map((side) => [anchorId(wall, side), wall[side]] as const)))
+  return [...anchors].sort(([a], [b]) => a.localeCompare(b)).map(([, point]) => point)
+}
+
 export function wallFromEndpoints(wall: Wall, start: Point2, end: Point2): Wall {
   return { ...wall, start, end, length: Math.hypot(end.x - start.x, end.z - start.z) }
 }
