@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { connectedEndpoints, moveWall, nearestEndpoint, snapCandidates, turnWall, tipWall, wallAtEndpoint } from '../src/model/wall.ts'
 import { emptyDraft, placePoint } from '../src/model/wall-draft.ts'
-import { createWall, createWallDraft, getWalls, updateWall, connectWalls, deleteWall } from '../src/api/walls.ts'
+import { clearWalls, createWall, createWallDraft, getWalls, updateWall, connectWalls, deleteWall } from '../src/api/walls.ts'
 
 const fixture = { id: 'a', name: 'A', start: { x: 0, z: 0 }, end: { x: 4, z: 0 }, length: 4, height: 2.5, thickness: 0.15, tiltDegrees: 0, startAnchorId: 's', endAnchorId: 'e' }
 
@@ -58,8 +58,9 @@ test('wall API uses DTOs and the expected routes and methods', async () => {
     await connectWalls('a', { endpoint: 'end', targetWallId: 'b', targetEndpoint: 'start' })
     await deleteWall('a')
     assert.deepEqual(await createWallDraft([fixture]), [fixture])
+    await clearWalls()
     assert.deepEqual(calls.map(({ url, method }) => [url, method]), [
-      ['/api/walls', 'GET'], ['/api/walls', 'POST'], ['/api/walls/a', 'PUT'], ['/api/walls/a/connections', 'POST'], ['/api/walls/a', 'DELETE'], ['/api/walls/draft', 'POST']
+      ['/api/walls', 'GET'], ['/api/walls', 'POST'], ['/api/walls/a', 'PUT'], ['/api/walls/a/connections', 'POST'], ['/api/walls/a', 'DELETE'], ['/api/walls/draft', 'POST'], ['/api/walls', 'DELETE']
     ])
     assert.equal(calls[2].body.end.x, 4)
     assert.deepEqual(calls[5].body, [fixture])
@@ -69,6 +70,9 @@ test('wall API uses DTOs and the expected routes and methods', async () => {
 test('API errors reject instead of treating invalid results as success', async () => {
   const original = globalThis.fetch
   globalThis.fetch = async () => ({ ok: false, status: 400, text: async () => 'Invalid wall' })
-  try { await assert.rejects(getWalls(), /Invalid wall/) }
+  try {
+    await assert.rejects(getWalls(), /Invalid wall/)
+    await assert.rejects(clearWalls(), /Invalid wall/)
+  }
   finally { globalThis.fetch = original }
 })

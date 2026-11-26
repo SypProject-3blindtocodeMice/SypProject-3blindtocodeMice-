@@ -18,6 +18,8 @@ Vite proxies `/api` to the local backend on port 5080.
 `POST /api/walls/draft` accepts an array of create requests and validates the
 whole draft before storing any walls. See the [Wall Pencil guide](../docs/WALL_PENCIL.md#implementation-and-api)
 for the batch contract and automatic snapping rules.
+`DELETE /api/walls` clears the current wall model and returns `204 No Content`,
+even when there are no walls.
 `POST /api/walls/{id}/connections` accepts
 `{ "endpoint": "start", "targetWallId": "<guid>", "targetEndpoint": "end" }`
 and returns all updated walls. A create request looks like:

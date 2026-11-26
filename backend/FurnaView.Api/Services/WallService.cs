@@ -28,6 +28,11 @@ public sealed class WallService(IWallRepository repository) : IWallService
         lock (_gate) return repository.Delete(id);
     }
 
+    public void Clear()
+    {
+        lock (_gate) repository.Clear();
+    }
+
     public WallResponse Create(CreateWallRequest request) => CreateDraft([request])[0];
 
     public IReadOnlyList<WallResponse> CreateDraft(IReadOnlyList<CreateWallRequest?> requests)

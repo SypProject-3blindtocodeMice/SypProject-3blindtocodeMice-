@@ -37,6 +37,8 @@ Click or tap to start a wall, then place points to pin segments. Use **Shift** o
 
 Click or tap a wall to select it, or select it from the wall list. Click or tap empty space in the viewport to deselect it. The keyboard shortcuts below apply only when a wall is selected and focus isn't in a form field. On touch screens, use **Edit geometry** in the wall editor.
 
+Use **Clear all** below the wall list to start over. Confirming removes all placed walls and discards any unfinished drawing without changing the grid or camera. This cannot be undone.
+
 | Shortcut | Effect on the selected wall |
 | --- | --- |
 | **← / →** | Move along the X axis by 0.25 m per step |
