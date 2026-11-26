@@ -9,4 +9,5 @@ public interface IWallRepository
     void Add(Wall wall);
     void Update(Wall wall);
     bool Delete(Guid id);
+    void Clear();
 }

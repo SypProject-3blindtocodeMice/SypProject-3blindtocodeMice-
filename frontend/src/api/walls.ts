@@ -17,4 +17,7 @@ export const updateWall = (id: string, body: UpdateWallRequest) => request<Wall>
 export async function deleteWall(id: string): Promise<void> {
   await fetchWallResponse(`/api/walls/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+export async function clearWalls(): Promise<void> {
+  await fetchWallResponse('/api/walls', { method: 'DELETE' })
+}
 export const connectWalls = (id: string, body: { endpoint: 'start' | 'end'; targetWallId: string; targetEndpoint: 'start' | 'end' }) => request<Wall[]>(`/api/walls/${encodeURIComponent(id)}/connections`, { method: 'POST', body: JSON.stringify(body) })

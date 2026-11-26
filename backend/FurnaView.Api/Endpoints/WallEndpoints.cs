@@ -24,6 +24,11 @@ public static class WallEndpoints
                 service.Update(id, request) is { } wall ? Results.Ok(wall) : Results.NotFound());
             group.MapDelete("/{id:guid}", (Guid id, IWallService service) =>
                 service.Delete(id) ? Results.NoContent() : Results.NotFound());
+            group.MapDelete("/", (IWallService service) =>
+            {
+                service.Clear();
+                return Results.NoContent();
+            });
             group.MapPost("/{id:guid}/connections", (Guid id, ConnectWallRequest request, IWallService service) =>
                 service.Connect(id, request) is { } walls ? Results.Ok(walls) : Results.NotFound());
             return app;

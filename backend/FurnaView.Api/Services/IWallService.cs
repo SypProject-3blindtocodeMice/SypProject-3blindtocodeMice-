@@ -10,5 +10,6 @@ public interface IWallService
     IReadOnlyList<WallResponse> CreateDraft(IReadOnlyList<CreateWallRequest?> requests);
     WallResponse? Update(Guid id, UpdateWallRequest request);
     bool Delete(Guid id);
+    void Clear();
     IReadOnlyList<WallResponse>? Connect(Guid id, ConnectWallRequest request);
 }

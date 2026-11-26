@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { connectWalls, createWall, createWallDraft, deleteWall, getWalls, updateWall } from '../api/walls'
+import { clearWalls, connectWalls, createWall, createWallDraft, deleteWall, getWalls, updateWall } from '../api/walls'
 import { connectedEndpoints, defaultWallDimensions, moveWall, parseWallDimension, parseWallDimensions, snapCandidates, tipWall, turnWall, wallEndpoints, type Point2, type Wall } from '../model/wall'
 import { dimensionArrows, emptyDraft, placePoint, stepDraftDimension, type DimensionArrow, type WallDraft } from '../model/wall-draft'
 import { Scene } from '../viewer3d/Scene'
@@ -18,6 +18,7 @@ const rotationStep = 1
 const defaultDimensionFields = { height: String(defaultWallDimensions.height), thickness: String(defaultWallDimensions.thickness) }
 const emptyForm = { name: '', startX: '0', startZ: '0', endX: '4', endZ: '0', ...defaultDimensionFields }
 const dimensionError = 'Height and thickness must be greater than zero.'
+const emptyConnection = { endpoint: 'end' as const, targetWallId: '', targetEndpoint: 'start' as const }
 
 export default function BuilderPage() {
   const [walls, setWalls] = useState<Wall[]>([])
@@ -28,6 +29,9 @@ export default function BuilderPage() {
   const [selectedWallId, setSelectedWallId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [clearing, setClearing] = useState(false)
+  const clearingRef = useRef(false)
+  const [wallRequests, setWallRequests] = useState(0)
   const [draft, setDraft] = useState<WallDraft | null>(null)
   const [draftDimensionFields, setDraftDimensionFields] = useState(defaultDimensionFields)
   const [dimensionKeyHeld, setDimensionKeyHeld] = useState(false)
@@ -41,7 +45,7 @@ export default function BuilderPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [edit, setEdit] = useState({ startX: '', startZ: '', endX: '', endZ: '', height: '', thickness: '' })
-  const [connection, setConnection] = useState({ endpoint: 'end' as 'start' | 'end', targetWallId: '', targetEndpoint: 'start' as 'start' | 'end' })
+  const [connection, setConnection] = useState<{ endpoint: 'start' | 'end'; targetWallId: string; targetEndpoint: 'start' | 'end' }>(emptyConnection)
   // UI-only state for the new layout (does not affect wall logic)
   const [panelOpen, setPanelOpen] = useState(true)
   const selectedWall = walls.find((wall) => wall.id === selectedWallId) ?? null
@@ -49,6 +53,7 @@ export default function BuilderPage() {
   const draftDimensions = parseWallDimensions(draftDimensionFields)
   const adjusting = drawing && !savingDraft && dimensionKeyHeld
   const snapTargets = useMemo(() => snapCandidates(walls), [walls])
+  const canClear = (walls.length > 0 || drawing) && wallRequests === 0 && !clearing && !deleting && !savingDraft
 
   useEffect(() => {
     const wall = walls.find((item) => item.id === selectedWallId)
@@ -57,9 +62,16 @@ export default function BuilderPage() {
   }, [selectedWallId, selectedWall?.start.x, selectedWall?.start.z, selectedWall?.end.x, selectedWall?.end.z, selectedWall?.height, selectedWall?.thickness])
 
   const reload = useCallback(async () => setWalls(await getWalls()), [])
-  useEffect(() => { reload().catch((e: unknown) => setError(`Could not load walls: ${String(e)}`)) }, [reload])
+  // Do not clear while a request can still apply an older wall list.
+  const trackWallRequest = useCallback(async <T,>(request: () => Promise<T>) => {
+    setWallRequests((count) => count + 1)
+    try { return await request() }
+    finally { setWallRequests((count) => count - 1) }
+  }, [])
+  useEffect(() => { trackWallRequest(reload).catch((e: unknown) => setError(`Could not load walls: ${String(e)}`)) }, [reload, trackWallRequest])
 
-  const commit = useCallback(async (id: string, optimistic: Wall) => {
+  const commit = useCallback(async (id: string, optimistic: Wall) => trackWallRequest(async () => {
+    if (clearingRef.current) return
     setWalls((current) => current.map((wall) => wall.id === id ? optimistic : wall))
     try {
       const updated = await updateWall(id, optimistic)
@@ -70,13 +82,13 @@ export default function BuilderPage() {
       try { await reload() } catch { /* Keep the original update error visible. */ }
       setError(`Could not update wall: ${String(e)}`)
     }
-  }, [reload])
+  }), [reload, trackWallRequest])
 
   useEffect(() => {
     if (!selectedWallId || deleting || drawing) return
     const activeWallId = selectedWallId
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.altKey || event.ctrlKey || event.metaKey) return
+      if (clearingRef.current || event.altKey || event.ctrlKey || event.metaKey) return
       if (event.target instanceof HTMLElement && (event.target.isContentEditable || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement)) return
       const current = pendingRef.current ?? wallsRef.current.find((wall) => wall.id === activeWallId)
       if (!current || !event.key.startsWith('Arrow')) return
@@ -107,7 +119,7 @@ export default function BuilderPage() {
   }, [selectedWallId, commit, deleting, drawing])
 
   function startDrawing() {
-    if (deleting || pendingRef.current) return
+    if (clearingRef.current || deleting || pendingRef.current) return
     setSelectedWallId(null)
     setShowAdd(false)
     setError('')
@@ -115,16 +127,20 @@ export default function BuilderPage() {
   }
 
   function cancelDrawing() {
-    if (savingDraftRef.current) return
+    if (clearingRef.current || savingDraftRef.current) return
+    resetDrawing()
+    setError('')
+  }
+
+  function resetDrawing() {
     setDraft(null)
     stopDimensionAdjustment()
     setShiftHeld(false)
     setParallel(false)
-    setError('')
   }
 
   function addDraftPoint(point: Point2, shift: boolean, source?: Wall) {
-    if (!draft || savingDraftRef.current || dimensionKeyRef.current || !draftDimensions) return
+    if (!draft || clearingRef.current || savingDraftRef.current || dimensionKeyRef.current || !draftDimensions) return
     viewportRef.current?.focus({ preventScroll: true })
     const dimensions = source ? { height: source.height, thickness: source.thickness } : draftDimensions
     const next = placePoint(draft, point, shift || parallel, snapTargets, dimensions)
@@ -134,7 +150,7 @@ export default function BuilderPage() {
   }
 
   async function finishDrawing() {
-    if (!draft?.segments.length || savingDraftRef.current) return
+    if (!draft?.segments.length || clearingRef.current || savingDraftRef.current) return
     savingDraftRef.current = true
     stopDimensionAdjustment()
     setSavingDraft(true)
@@ -171,6 +187,7 @@ export default function BuilderPage() {
   useEffect(() => {
     if (!drawing) return
     function keyDown(event: KeyboardEvent) {
+      if (clearingRef.current) return
       if (event.key === 'Shift') setShiftHeld(true)
       if (event.altKey || event.ctrlKey || event.metaKey || event.defaultPrevented) return
       const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable]')
@@ -219,28 +236,33 @@ export default function BuilderPage() {
 
   async function addWall(event: React.FormEvent) {
     event.preventDefault()
+    if (clearingRef.current) return
     const dimensions = parseWallDimensions(form)
     if (!dimensions) { setError(dimensionError); return }
-    try {
-      const wall = await createWall({ name: form.name, start: { x: Number(form.startX), z: Number(form.startZ) }, end: { x: Number(form.endX), z: Number(form.endZ) }, ...dimensions })
-      await reload()
-      setSelectedWallId(wall.id)
-      setForm(emptyForm)
-      setShowAdd(false)
-      setError('')
-    } catch (e) { setError(`Could not add wall: ${String(e)}`) }
+    await trackWallRequest(async () => {
+      try {
+        const wall = await createWall({ name: form.name, start: { x: Number(form.startX), z: Number(form.startZ) }, end: { x: Number(form.endX), z: Number(form.endZ) }, ...dimensions })
+        await reload()
+        setSelectedWallId(wall.id)
+        setForm(emptyForm)
+        setShowAdd(false)
+        setError('')
+      } catch (e) { setError(`Could not add wall: ${String(e)}`) }
+    })
   }
 
   async function connect(event: React.FormEvent) {
     event.preventDefault()
-    if (!selectedWallId || !connection.targetWallId) return
-    try { setWalls(await connectWalls(selectedWallId, connection)); setError('') }
-    catch (e) { setError(`Could not connect walls: ${String(e)}`); try { await reload() } catch { /* Keep error visible. */ } }
+    if (clearingRef.current || !selectedWallId || !connection.targetWallId) return
+    await trackWallRequest(async () => {
+      try { setWalls(await connectWalls(selectedWallId, connection)); setError('') }
+      catch (e) { setError(`Could not connect walls: ${String(e)}`); try { await reload() } catch { /* Keep error visible. */ } }
+    })
   }
 
   async function saveWall(event: React.FormEvent) {
     event.preventDefault()
-    if (!selectedWall || deleting) return
+    if (!selectedWall || clearingRef.current || deleting) return
     const dimensions = parseWallDimensions(edit)
     if (!dimensions) { setError(dimensionError); return }
     const next = { ...selectedWall, start: { x: Number(edit.startX), z: Number(edit.startZ) }, end: { x: Number(edit.endX), z: Number(edit.endZ) }, ...dimensions }
@@ -248,7 +270,7 @@ export default function BuilderPage() {
   }
 
   async function removeSelectedWall() {
-    if (!selectedWall || deleting || pendingRef.current) return
+    if (!selectedWall || clearingRef.current || deleting || pendingRef.current) return
     const { id, name } = selectedWall
     if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return
     setDeleting(true)
@@ -265,11 +287,31 @@ export default function BuilderPage() {
     }
   }
 
+  async function clearAll() {
+    if (!canClear || clearingRef.current || pendingRef.current || savingDraftRef.current) return
+    if (!window.confirm('Clear all placed objects and discard any unfinished drawing? This cannot be undone.')) return
+    clearingRef.current = true
+    setClearing(true)
+    try {
+      await clearWalls()
+      setWalls([])
+      setSelectedWallId(null)
+      setConnection(emptyConnection)
+      resetDrawing()
+      setError('')
+    } catch (e) {
+      setError(`Could not clear all objects: ${String(e)}`)
+    } finally {
+      clearingRef.current = false
+      setClearing(false)
+    }
+  }
+
   return <div className={`builder ${panelOpen ? 'panel-open' : 'panel-closed'}`}>
     <section ref={viewportRef} tabIndex={-1} className={`viewport${drawing ? ' viewport-drawing' : ''}`} aria-label={`${view} building viewport`}>
       <Canvas camera={camera} onPointerMissed={() => !drawing && setSelectedWallId(null)}>
         <Scene view={view} walls={walls} selectedWallId={selectedWallId} onSelectWall={setSelectedWallId} onDeselectWall={() => !drawing && setSelectedWallId(null)}
-          drawing={draft ? { draft, dimensions: draftDimensions, adjusting, parallel: parallel || shiftHeld, saving: savingDraft, targets: snapTargets, onPlace: addDraftPoint } : undefined} />
+          drawing={draft ? { draft, dimensions: draftDimensions, adjusting, parallel: parallel || shiftHeld, saving: savingDraft || clearing, targets: snapTargets, onPlace: addDraftPoint } : undefined} />
       </Canvas>
       {adjusting && <div className="dimension-adjust-overlay">
         <div className="dimension-adjust-readout">
@@ -299,25 +341,25 @@ export default function BuilderPage() {
         {error && <p className="error" role="alert">{error}</p>}
 
         <section className="panel-section">
-          <button type="button" className="btn btn-primary btn-block" aria-pressed={drawing} disabled={savingDraft} onClick={drawing ? cancelDrawing : startDrawing}>Draw wall</button>
+          <button type="button" className="btn btn-primary btn-block" aria-pressed={drawing} disabled={savingDraft || clearing} onClick={drawing ? cancelDrawing : startDrawing}>Draw wall</button>
           {draft ? <div className="wall-form">
             <p className="wall-hint" role="status">{draft.tip ? `${draft.segments.length} draft segments. Click or tap to place the next point.` : 'Click or tap the grid to place the first point.'} Drag to navigate; scroll or pinch to zoom.</p>
-            <div className="form-grid">{dimensionKeys.map((key) => <label key={key} className="field">{fieldLabels[key]} (m)<input className="input" type="number" step="any" required disabled={savingDraft} value={draftDimensionFields[key]} aria-invalid={parseWallDimension(draftDimensionFields[key]) === null} aria-describedby="pencil-dimensions-hint" onChange={(e) => setDraftDimensionFields({ ...draftDimensionFields, [key]: e.target.value })} /></label>)}</div>
+             <div className="form-grid">{dimensionKeys.map((key) => <label key={key} className="field">{fieldLabels[key]} (m)<input className="input" type="number" step="any" required disabled={savingDraft || clearing} value={draftDimensionFields[key]} aria-invalid={parseWallDimension(draftDimensionFields[key]) === null} aria-describedby="pencil-dimensions-hint" onChange={(e) => setDraftDimensionFields({ ...draftDimensionFields, [key]: e.target.value })} /></label>)}</div>
             <p className="wall-hint" id="pencil-dimensions-hint">{draftDimensions ? 'Applies to the next wall. Placed walls keep their dimensions.' : `${dimensionError} Fix the values to keep drawing.`}</p>
             <p className="wall-hint">Hold <kbd>D</kbd> and use <kbd>↑</kbd>/<kbd>↓</kbd> for height or <kbd>←</kbd>/<kbd>→</kbd> for thickness. Holding an arrow increases the step size.</p>
-            <button type="button" className="btn btn-block" aria-pressed={parallel || shiftHeld} disabled={!draft.base || savingDraft} onClick={() => setParallel((value) => !value)}>Parallel sides</button>
+             <button type="button" className="btn btn-block" aria-pressed={parallel || shiftHeld} disabled={!draft.base || savingDraft || clearing} onClick={() => setParallel((value) => !value)}>Parallel sides</button>
             <p className="wall-hint">Hold <kbd>Shift</kbd> or toggle Parallel sides to draw from both ends of the last wall.</p>
              <p className="wall-hint">Green means snapped. Snapping to an existing wall copies its height and thickness.</p>
             <div className="form-grid">
-              <button type="button" className="btn btn-primary" disabled={!draft.segments.length || savingDraft} onClick={finishDrawing}>{savingDraft ? 'Saving…' : 'Finish (Enter)'}</button>
-              <button type="button" className="btn" disabled={savingDraft} onClick={cancelDrawing}>Cancel (Esc)</button>
+               <button type="button" className="btn btn-primary" disabled={!draft.segments.length || savingDraft || clearing} onClick={finishDrawing}>{savingDraft ? 'Saving…' : 'Finish (Enter)'}</button>
+               <button type="button" className="btn" disabled={savingDraft || clearing} onClick={cancelDrawing}>Cancel (Esc)</button>
             </div>
           </div> : <button type="button" className="btn btn-block" onClick={() => setShowAdd((value) => !value)}>{showAdd ? 'Cancel' : '+ Add wall by coordinates'}</button>}
           {showAdd && <form onSubmit={addWall} className="wall-form">
             <h2>New wall <span>(metres)</span></h2>
             <label className="field">Name<input className="input" required placeholder="Living room north" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
             <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="any" required value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></label>)}</div>
-            <button type="submit" className="btn btn-primary btn-block">Add wall</button>
+             <button type="submit" className="btn btn-primary btn-block" disabled={clearing}>Add wall</button>
           </form>}
         </section>
 
@@ -326,6 +368,7 @@ export default function BuilderPage() {
           {walls.length === 0
             ? <p className="empty">No walls yet. Add your first wall to see it on the grid.</p>
             : <ul className="wall-list">{walls.map((wall) => <li key={wall.id}><button type="button" disabled={drawing} className={selectedWallId === wall.id ? 'selected' : ''} onClick={() => setSelectedWallId(wall.id)}><span>{wall.name}</span><small>{wall.length.toFixed(2)} m</small></button></li>)}</ul>}
+          <button type="button" className="btn btn-danger btn-block" disabled={!canClear} onClick={clearAll}>{clearing ? 'Clearing…' : 'Clear all'}</button>
         </section>
 
         {selectedWall && <section className="panel-section wall-details">
@@ -340,8 +383,8 @@ export default function BuilderPage() {
           <form onSubmit={saveWall} className="wall-form">
             <h3>Edit geometry <span>(metres)</span></h3>
             <div className="form-grid">{fieldKeys.map((key) => <label key={key} className="field">{fieldLabels[key]}<input className="input" type="number" step="any" required value={edit[key]} onChange={(e) => setEdit({ ...edit, [key]: e.target.value })} /></label>)}</div>
-            <button type="submit" className="btn btn-primary btn-block" disabled={deleting}>Save wall</button>
-            <button type="button" className="btn btn-danger btn-block" disabled={deleting} onClick={removeSelectedWall}>{deleting ? 'Deleting…' : 'Delete wall'}</button>
+             <button type="submit" className="btn btn-primary btn-block" disabled={deleting || clearing}>Save wall</button>
+             <button type="button" className="btn btn-danger btn-block" disabled={deleting || clearing} onClick={removeSelectedWall}>{deleting ? 'Deleting…' : 'Delete wall'}</button>
           </form>
 
            <section className="wall-form connect-form">
@@ -362,7 +405,7 @@ export default function BuilderPage() {
             <label className="field">From this wall<select className="select" value={connection.endpoint} onChange={(e) => setConnection({ ...connection, endpoint: e.target.value as 'start' | 'end' })}><option value="start">Start point</option><option value="end">End point</option></select></label>
             <label className="field">To wall<select className="select" required value={connection.targetWallId} onChange={(e) => setConnection({ ...connection, targetWallId: e.target.value })}><option value="">Choose wall…</option>{walls.filter((w) => w.id !== selectedWall.id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
             <label className="field">At its<select className="select" value={connection.targetEndpoint} onChange={(e) => setConnection({ ...connection, targetEndpoint: e.target.value as 'start' | 'end' })}><option value="start">Start point</option><option value="end">End point</option></select></label>
-            <button type="submit" className="btn btn-block">Connect</button>
+             <button type="submit" className="btn btn-block" disabled={clearing}>Connect</button>
           </form>}
         </section>}
       </div>
