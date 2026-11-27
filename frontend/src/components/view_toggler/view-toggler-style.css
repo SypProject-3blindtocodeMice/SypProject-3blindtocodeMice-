@@ -1,0 +1,6 @@
+.view-toggler {
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: 700 0.75rem/1 var(--font-heading);
+}

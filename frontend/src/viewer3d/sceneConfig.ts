@@ -1,3 +1,5 @@
+export type ViewMode = '2D' | '3D'
+
 export const camera = {
   position: [10, 9, 12] as [number, number, number],
   fov: 50,

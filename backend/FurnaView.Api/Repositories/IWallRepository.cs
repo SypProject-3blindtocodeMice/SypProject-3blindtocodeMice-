@@ -8,4 +8,6 @@ public interface IWallRepository
     Wall? Get(Guid id);
     void Add(Wall wall);
     void Update(Wall wall);
+    bool Delete(Guid id);
+    void Clear();
 }

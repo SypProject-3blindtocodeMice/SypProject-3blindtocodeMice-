@@ -9,9 +9,14 @@ namespace FurnaView.Api.Tests;
 public sealed class WallApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
+    private readonly WebApplicationFactory<Program> _clientFactory;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    public WallApiTests(WebApplicationFactory<Program> factory) => _client = factory.CreateClient();
+    public WallApiTests(WebApplicationFactory<Program> factory)
+    {
+        _clientFactory = factory;
+        _client = factory.CreateClient();
+    }
 
     [Fact]
     public async Task CreateGetListAndPutWork()
@@ -50,6 +55,58 @@ public sealed class WallApiTests : IClassFixture<WebApplicationFactory<Program>>
         var moved = await _client.GetFromJsonAsync<JsonElement>($"/api/walls/{second}");
         Assert.Equal(5, moved.GetProperty("start").GetProperty("x").GetDouble());
         Assert.Equal(1, moved.GetProperty("start").GetProperty("z").GetDouble());
+    }
+
+    [Fact]
+    public async Task DeletingWallRemovesItFromReadsAndLists()
+    {
+        var id = await Create("delete me", 0, 0, 4, 0);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync($"/api/walls/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync($"/api/walls/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.DeleteAsync($"/api/walls/{id}")).StatusCode);
+        var list = await _client.GetFromJsonAsync<JsonElement[]>("/api/walls/");
+        Assert.DoesNotContain(list!, item => item.GetProperty("id").GetGuid() == id);
+    }
+
+    [Fact]
+    public async Task ClearingWallsRemovesAllWallsAndAllowsNewPlacement()
+    {
+        var first = await Create("first wall", 0, 0, 4, 0);
+        var second = await Create("connected wall", 4, 0, 4, 3);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync("/api/walls")).StatusCode);
+        using var refreshedClient = _clientFactory.CreateClient();
+        Assert.Empty((await refreshedClient.GetFromJsonAsync<JsonElement[]>("/api/walls"))!);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync($"/api/walls/{first}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync($"/api/walls/{second}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync("/api/walls")).StatusCode);
+
+        await Create("new wall", 0, 0, 4, 0);
+        Assert.Single((await _client.GetFromJsonAsync<JsonElement[]>("/api/walls"))!);
+    }
+
+    [Fact]
+    public async Task DraftSavesAllSegmentsWithSharedAnchorsAndRejectsInvalidDrafts()
+    {
+        var rejected = await _client.PostAsJsonAsync("/api/walls/draft", new[]
+        {
+            Request("uncommitted draft wall", 10, 10, 11, 10), Request("collapsed", 10, 10, 10, 10)
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        var list = await _client.GetFromJsonAsync<JsonElement[]>("/api/walls/");
+        Assert.DoesNotContain(list!, item => item.GetProperty("name").GetString() == "uncommitted draft wall");
+
+        var saved = await _client.PostAsJsonAsync("/api/walls/draft", new[]
+        {
+            Request("base", 10, 10, 14, 10), Request("first side", 10, 10, 10, 13), Request("second side", 14, 10, 14, 13)
+        });
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        var walls = (await saved.Content.ReadFromJsonAsync<JsonElement[]>())!;
+        Assert.Equal(3, walls.Length);
+        Assert.Equal(walls[0].GetProperty("startAnchorId").GetGuid(), walls[1].GetProperty("startAnchorId").GetGuid());
+        Assert.Equal(walls[0].GetProperty("endAnchorId").GetGuid(), walls[2].GetProperty("startAnchorId").GetGuid());
+        var id = walls[1].GetProperty("id").GetGuid();
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/walls/{id}")).StatusCode);
     }
 
     [Fact]
